@@ -15,7 +15,7 @@ class ViewController: UIViewController {
 //  Default URL to display in web view
     var defaultURL = URL(string: "https://www.jamf.com/solutions/industries/retail/")
 
-//  Maintenance_Mode status
+//  Maintenance mode status
     var MAINTENANCE_MODE = "OFF"
     
 //  Last URL loaded in web view
