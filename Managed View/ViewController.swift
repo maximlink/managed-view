@@ -35,6 +35,7 @@ class ViewController: UIViewController {
         // request URL to web view
         setupView()
         
+        // observe if App Config pushed from MDM
         NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: OperationQueue.main) { _ in
             self.setupView()
             print ("reload")

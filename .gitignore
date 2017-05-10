@@ -79,6 +79,7 @@ fastlane/test_output
 ## Various settings
 
 ## Other
+.DS_STORE
 
 ### Xcode Patch ###
 *.xcodeproj/*
