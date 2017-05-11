@@ -13,7 +13,7 @@ class ViewController: UIViewController {
     @IBOutlet var WebView: UIWebView!
     
 //  Default URL to display in web view
-    var defaultURL = URL(string: "https://www.jamf.com/solutions/industries/retail/")
+    var defaultURL = URL(string: "http://maximlink.com/readme")
 
 //  Maintenance mode status
     var MAINTENANCE_MODE = "OFF"
