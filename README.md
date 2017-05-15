@@ -10,8 +10,8 @@ MDM solution such as Jamf Pro to remotely modify default URL or enable maintenan
 3. Maintenance Mode - use the app to display maintenance page while performing routine maintenance such as app updates.
 
 ## Features
-1. Managed App Config to define URL from central management console
-2. Support for Autonomous Single App Mode (ASAM). ASAM allows user to enable and disable Single App Mode within the app.  Hidden gesture used to access the feature.
+1. Managed App Config to define URL from central management console.
+2. Support for Autonomous Single App Mode (ASAM). ASAM allows user to enable and disable Single App Mode within the app.  Hidden gesture used to access the feature.  Use triple tap gesture to access ASAM feature.
 2. Built-in maintenance mode with embedded image.  Enabled with Managed App Config.
 
 ## Managed App Config settings
