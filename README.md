@@ -21,13 +21,14 @@ URL key: URL to display in app.
 MAINTENANCE_MODE key: Set to “ON” to display static image and provide user a visual that the device is not available.
 
 ## App Config template
-
+```xml
 <dict>
 <key>MAINTENANCE_MODE</key>
 <string>OFF</string>
 <key>URL</key>
 <string>http://foo.com</string>
 </dict>
+```
 
 Please leave feedback and/or comments on how this could be improved!
 
