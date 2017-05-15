@@ -16,17 +16,17 @@ MDM solution such as Jamf Pro to remotely modify default URL or enable maintenan
 
 ## Managed App Config settings
 
-URL key: URL to display in app.
+**URL** key: URL to display in app.
 
-MAINTENANCE_MODE key: Set to “ON” to display static image and provide user a visual that the device is not available.
+**MAINTENANCE_MODE** key: Set to “ON” to display static image and provide user a visual that the device is not available.
 
 ## App Config template
 ```xml
 <dict>
-<key>MAINTENANCE_MODE</key>
-<string>OFF</string>
-<key>URL</key>
-<string>http://foo.com</string>
+  <key>MAINTENANCE_MODE</key>
+    <string>OFF</string>
+  <key>URL</key>
+    <string>http://foo.com</string>
 </dict>
 ```
 
