@@ -13,7 +13,6 @@
 		933DFBC11EB11818002EEE14 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 933DFBBF1EB11818002EEE14 /* Main.storyboard */; };
 		933DFBC41EB118D4002EEE14 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 933DFBC21EB118D4002EEE14 /* LaunchScreen.storyboard */; };
 		9356E40D1EC26AF400AFECDB /* img in Resources */ = {isa = PBXBuildFile; fileRef = 9356E40C1EC26AF400AFECDB /* img */; };
-		93F367481ECA837200BFC414 /* screenshots in Resources */ = {isa = PBXBuildFile; fileRef = 93F367471ECA837200BFC414 /* screenshots */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -138,7 +137,6 @@
 				9356E40D1EC26AF400AFECDB /* img in Resources */,
 				933DFBC41EB118D4002EEE14 /* LaunchScreen.storyboard in Resources */,
 				933DFBBA1EB117B1002EEE14 /* Assets.xcassets in Resources */,
-				93F367481ECA837200BFC414 /* screenshots in Resources */,
 				933DFBC11EB11818002EEE14 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
