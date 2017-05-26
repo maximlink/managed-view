@@ -161,7 +161,7 @@ class ViewController: UIViewController {
             
             //  Check if MAINTENANCE_MODE key is set to "ON"
             
-            if (String(describing: ManAppConfig["MAINTENANCE_MODE"]!) == "ON") {
+            if (MAINTENANCE_MODE == "ON") {
                 
                 newurl = URL.init(fileURLWithPath: Bundle.main.path(forResource: "curtain", ofType: "png", inDirectory: "img")!)
                 
