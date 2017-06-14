@@ -69,62 +69,11 @@ class ViewController: UIViewController {
         
        
         //  Customize user dialog based on current state of ASAM and reguest ASAM state change
-        if (asamStatus == false) {
-            let asamEnable: UIAlertAction = UIAlertAction(title: "Enable", style: .default) { action -> Void in
-                UIAccessibilityRequestGuidedAccessSession(true) {
-                    success in
-                
-                    print("INFO: ASAM request to set ON")
-                
-                    if success {
-                        print ("ASAM is enabled")
-                        let asamAlert = UIAlertController(title: "Success", message: "Autonomous Single App Mode is\n\n ENABLED.", preferredStyle: UIAlertControllerStyle.alert)
-                        asamAlert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-                    
-                        self.present(asamAlert, animated: true, completion: nil)
-                    }
-                    else {
-                        print ("INFO: ASAM is not capable.")
-                        let asamAlert = UIAlertController(title: "Autonomous Single App Mode is not supported", message: "This device does not currently support Automonous Single App Mode (ASAM).  ASAM requires the following:\n\n (1) Device is in supervised state.\n\n(2) Configuration profile supporting ASAM for this specific app installed on device.", preferredStyle: UIAlertControllerStyle.alert)
-                        asamAlert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-                    
-                        self.present(asamAlert, animated: true, completion: nil)
-
-                    }
-
-                }
-            }
-        
-            actionSheetController.addAction(asamEnable)
+        var message:String = "Disabled"
+        if(asamStatus){
+            message = "Enabled"
         }
-        
-        else {
-            let asamDisable: UIAlertAction = UIAlertAction(title: "Disable", style: .default) { action -> Void in
-                UIAccessibilityRequestGuidedAccessSession(false) {
-                    success in
-                    
-                    print("INFO: ASAM request to set OFF")
-                    
-                    if success {
-                        print ("ASAM is disenabled")
-                        let asamAlert = UIAlertController(title: "Success", message: "Autonomous Single App Mode is\n\n DISABLED.", preferredStyle: UIAlertControllerStyle.alert)
-                        asamAlert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-                    
-                        self.present(asamAlert, animated: true, completion: nil)
-                        
-                    }
-                    else {
-                        print ("INFO: ASAM is not capable.")
-                        let asamAlert = UIAlertController(title: "Autonomous Single App Mode is not supported", message: "This device does not currently support Automonous Single App Mode (ASAM).  ASAM requires the following:\n\n (1) Device is in supervised state.\n\n(2) Configuration profile supporting ASAM for this specific app installed on device.", preferredStyle: UIAlertControllerStyle.alert)
-                        asamAlert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-                    
-                        self.present(asamAlert, animated: true, completion: nil)
-
-                    }
-                }
-            }
-            actionSheetController.addAction(asamDisable)
-        }
+        setupASAM(enabled: asamStatus, actionSheetController: actionSheetController, message: message)
         
         //Create and add the Cancel action
         let cancelAction: UIAlertAction = UIAlertAction(title: "Cancel", style: .destructive) { action -> Void in
@@ -138,6 +87,34 @@ class ViewController: UIViewController {
         // Present dialog to user
         self.present(actionSheetController, animated: true, completion: nil)
         
+    }
+    
+    func setupASAM(enabled:Bool, actionSheetController: UIAlertController, message:String) {
+        let asam: UIAlertAction = UIAlertAction(title: message, style: .default) { action -> Void in
+            UIAccessibilityRequestGuidedAccessSession(true) {
+                success in
+                
+                print("INFO: ASAM request to set \(message)")
+                
+                if success {
+                    print ("ASAM is \(message)")
+                    let asamAlert = UIAlertController(title: "Success", message: "Autonomous Single App Mode is\n\n \(message).", preferredStyle: UIAlertControllerStyle.alert)
+                    asamAlert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+                    
+                    self.present(asamAlert, animated: true, completion: nil)
+                }
+                else {
+                    print ("INFO: ASAM is not capable.")
+                    let asamAlert = UIAlertController(title: "Autonomous Single App Mode is not supported", message: "This device does not currently support Automonous Single App Mode (ASAM).  ASAM requires the following:\n\n (1) Device is in supervised state.\n\n(2) Configuration profile supporting ASAM for this specific app installed on device.", preferredStyle: UIAlertControllerStyle.alert)
+                    asamAlert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+                    
+                    self.present(asamAlert, animated: true, completion: nil)
+                    
+                }
+            }
+        }
+        
+        actionSheetController.addAction(asam)
     }
     
     func setupView() {
@@ -177,49 +154,44 @@ class ViewController: UIViewController {
                 }
                 
             }
-            
             else {
-            
-            
-            //  Check if URL key is set
-            
-            if (ManAppConfig["URL"] != nil) {
+                //  Check if URL key is set
                 
-                newurl = URL(string: String(describing: ManAppConfig["URL"]!))
-                
-                //  If URL changed since last web view load then load new URL
-                
-                if newurl != url {
+                if (ManAppConfig["URL"] != nil) {
                     
-                    print ("STATUS: loading updated AppConfig URL \(newurl!)")
-                    let request = URLRequest(url: newurl!)
+                    newurl = URL(string: String(describing: ManAppConfig["URL"]!))
                     
-                    WebView.loadRequest(request)
-                    url = newurl
+                    //  If URL changed since last web view load then load new URL
+                    
+                    if newurl != url {
+                        
+                        print ("STATUS: loading updated AppConfig URL \(newurl!)")
+                        let request = URLRequest(url: newurl!)
+                        
+                        WebView.loadRequest(request)
+                        url = newurl
+                    }
+                    
                 }
-                
-            }
 
-            // If no Manged App Config URL key set then use default URL
-            
-            else {
+                // If no Manged App Config URL key set then use default URL
                 
-                newurl = defaultURL
-                
-                //  If URL changed since last web view load then load new URL
+                else {
+                    
+                    newurl = defaultURL
+                    
+                    //  If URL changed since last web view load then load new URL
 
-                if newurl != url {
-                    
-                    print ("STATUS: loading default URL \(newurl!)")
-                    let request = URLRequest(url: newurl!)
-                    
-                    WebView.loadRequest(request)
-                    url = newurl
+                    if newurl != url {
+                        
+                        print ("STATUS: loading default URL \(newurl!)")
+                        let request = URLRequest(url: newurl!)
+                        
+                        WebView.loadRequest(request)
+                        url = newurl
+                    }
                 }
-                
             }
-            }
-            
         }
             
         // If no Manged App Config then use default URL
