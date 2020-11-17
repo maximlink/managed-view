@@ -1,0 +1,91 @@
+<managedAppConfiguration>
+	<version>2.1.2</version>
+	<bundleId>com.aaronmaxim.ManagedView</bundleId>
+	<dict>
+		<string keyName="URL">
+			<defaultValue>
+				<value>https:&#x2F;&#x2F;www.maximlink.com&#x2F;readme&#x2F;</value>
+			</defaultValue>
+		</string>
+		<string keyName="MAINTENANCE_MODE">
+			<defaultValue>
+				<value>OFF</value>
+			</defaultValue><constraints nullable="true"   >
+            </constraints>
+		</string>
+		<string keyName="BROWSER_MODE">
+			<defaultValue>
+				<value>OFF</value>
+			</defaultValue><constraints nullable="true"   >
+            </constraints>
+		</string>
+		<string keyName="BROWSER_BAR_NO_EDIT">
+			<defaultValue>
+				<value>OFF</value>
+			</defaultValue><constraints nullable="true"   >
+            </constraints>
+		</string>
+		<string keyName="REMOTE_LOCK">
+			<defaultValue>
+				<value>OFF</value>
+			</defaultValue><constraints nullable="true"   >
+            </constraints>
+		</string>
+		<string keyName="PRIVATE_BROWSING">
+			<defaultValue>
+				<value>OFF</value>
+			</defaultValue><constraints nullable="true"   >
+            </constraints>
+		</string>
+	</dict>
+	<presentation defaultLocale="en-US">
+		<field keyName="URL" type="input">
+			<label>
+				<language value="en-US">Web page address</language>
+			</label>
+			<description>
+				<language value="en-US">URL to display in app or default home page when BROWSER_MODE is enabled.</language>
+			</description>
+		</field>
+		<field keyName="MAINTENANCE_MODE" type="input">
+			<label>
+				<language value="en-US">Enable maintenance mode</language>
+			</label>
+			<description>
+				<language value="en-US">Set to “ON” to display static image and provide user a visual that the device is not available.</language>
+			</description>
+		</field>
+		<field keyName="BROWSER_MODE" type="input">
+			<label>
+				<language value="en-US">Enable browser navigation bar</language>
+			</label>
+			<description>
+				<language value="en-US">Set to “ON” to display browser navigation bar and provide user an interactive method to navigate web sites.</language>
+			</description>
+		</field>
+		<field keyName="BROWSER_BAR_NO_EDIT" type="input">
+			<label>
+				<language value="en-US">Disable the ability for user to enter URL</language>
+			</label>
+			<description>
+				<language value="en-US">Set to “ON” to disable the ability to edit the URL address bar.  Use with content filter via config profile to lock down device to specific website.</language>
+			</description>
+		</field>
+		<field keyName="REMOTE_LOCK" type="input">
+			<label>
+				<language value="en-US">Remotely lock app into single app mode</language>
+			</label>
+			<description>
+				<language value="en-US">et to “ON” to remotely trigger Autonomous Single App Mode.  Requires supervised device and config profile with ASAM restriction payload.  Green bar will be displayed at bottom of app if ASAM is enabled.  Gray bar indicates ASAM is not enabled, but REMOTE_LOCK is attempting to enable.</language>
+			</description>
+		</field>
+		<field keyName="PRIVATE_BROWSING" type="input">
+			<label>
+				<language value="en-US">Enable private browser mode</language>
+			</label>
+			<description>
+				<language value="en-US">Set to “ON” to enable private browsing mode. While in private browsing mode, the app stores web browsing data in non-persistent local data store similar to Safari using Private Browsing mode.</language>
+			</description>
+		</field>
+	</presentation>
+</managedAppConfiguration>
