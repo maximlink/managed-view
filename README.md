@@ -1,6 +1,9 @@
 # Managed View
 Simple app leveraging Managed App Config and Anonymous Single Add Mode (ASAM).
 
+Available free in the App Store.
+https://apps.apple.com/us/app/managed-view/id1159586083
+
 ## Requirements
 MDM solution such as Jamf Pro to remotely modify default URL or enable maintenance mode.
 
@@ -16,17 +19,33 @@ MDM solution such as Jamf Pro to remotely modify default URL or enable maintenan
 
 ## Managed App Config settings
 
-**URL** key: URL to display in app.
+URL key: URL to display in app or default home page when BROWSER_MODE is enabled.
 
 **MAINTENANCE_MODE** key: Set to “ON” to display static image and provide user a visual that the device is not available.
+
+**BROWSER_MODE** key: Set to “ON” to display browser navigation bar and provide user an interactive method to navigate web sites.
+
+**BROWSER_BAR_NO_EDIT** key: Set to “ON” to disable the ability to edit the URL address bar.  Use with content filter via config profile to lock down device to specific website.
+
+**REMOTE_LOCK** key: Set to “ON” to remotely trigger Autonomous Single App Mode.  Requires supervised device and config profile with ASAM restriction payload.  Green bar will be displayed at bottom of app if ASAM is enabled.  Gray bar indicates ASAM is not enabled, but REMOTE_LOCK is attempting to enable.
+
+**PRIVATE_BROWSING** key: Set to “ON” to enable private browsing mode. While in private browsing mode, the app stores web browsing data in non-persistent local data store similar to Safari using Private Browsing mode.
 
 ## App Config template
 ```xml
 <dict>
   <key>MAINTENANCE_MODE</key>
     <string>OFF</string>
+  <key>BROWSER_MODE</key> 
+    <string>OFF</string>
+  <key>BROWSER_BAR_NO_EDIT</key>
+    <string>OFF</string>
   <key>URL</key>
-    <string>http://foo.com</string>
+    <string>https://foo.com</string>
+  <key>REMOTE_LOCK</key> 
+    <string>OFF</string>
+  <key>PRIVATE_BROWSING</key> 
+    <string>OFF</string>
 </dict>
 ```
 

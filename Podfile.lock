@@ -1,0 +1,12 @@
+PODS:
+  - ManagedAppConfigLib (1.0.0)
+
+DEPENDENCIES:
+  - ManagedAppConfigLib
+
+SPEC CHECKSUMS:
+  ManagedAppConfigLib: ba5324ddebb748d77e60d49a8e1900424b9fca9d
+
+PODFILE CHECKSUM: 1e2637bc29bc01a98d55fb5c7489dae15d55ce8a
+
+COCOAPODS: 1.4.0

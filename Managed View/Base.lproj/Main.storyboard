@@ -1,57 +1,95 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12120" systemVersion="16E195" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
-    <device id="ipad9_7" orientation="portrait">
-        <adaptation id="fullscreen"/>
-    </device>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17156" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="Sg8-kt-QI3">
+    <device id="ipad9_7" orientation="portrait" layout="fullscreen" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12088"/>
-        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17126"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
-        <scene sceneID="tne-QT-ifu">
+        <scene sceneID="2NM-sl-Aob">
             <objects>
-                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="Managed_View" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="nLh-iL-AL7" customClass="ViewController" customModule="Managed_View" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="y3c-jy-aDJ"/>
-                        <viewControllerLayoutGuide type="bottom" id="wfy-db-euE"/>
+                        <viewControllerLayoutGuide type="top" id="TmY-bo-gow"/>
+                        <viewControllerLayoutGuide type="bottom" id="wx0-t7-FCQ"/>
                     </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                    <view key="view" contentMode="scaleToFill" id="drF-Hb-D0N">
                         <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <webView contentMode="scaleToFill" scalesPageToFit="YES" translatesAutoresizingMaskIntoConstraints="NO" id="h85-BA-wZz">
-                                <rect key="frame" x="0.0" y="0.0" width="768" height="1024"/>
-                                <color key="backgroundColor" red="0.28958413004875183" green="0.31462949514389038" blue="0.32950475811958313" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                <gestureRecognizers/>
-                                <connections>
-                                    <outletCollection property="gestureRecognizers" destination="Dh2-Dd-C72" appends="YES" id="tQJ-mx-Nxf"/>
-                                </connections>
-                            </webView>
-                        </subviews>
-                        <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                        <constraints>
-                            <constraint firstItem="h85-BA-wZz" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="topMargin" id="EhT-pN-WWn"/>
-                            <constraint firstAttribute="trailingMargin" secondItem="h85-BA-wZz" secondAttribute="trailing" constant="-20" id="F86-NL-bNA"/>
-                            <constraint firstItem="h85-BA-wZz" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="-20" id="Ucn-nZ-cNr"/>
-                            <constraint firstItem="h85-BA-wZz" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="tbG-rj-I0k"/>
-                            <constraint firstItem="h85-BA-wZz" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="u9I-r2-CXS"/>
-                        </constraints>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                     </view>
+                    <navigationItem key="navigationItem" id="1KT-1Q-6Gr">
+                        <nil key="title"/>
+                        <leftBarButtonItems>
+                            <barButtonItem image="icons8-back_filled" id="8oN-Pj-D6q">
+                                <connections>
+                                    <action selector="goBack:" destination="nLh-iL-AL7" id="mCA-Dr-gYQ"/>
+                                </connections>
+                            </barButtonItem>
+                            <barButtonItem image="icons8-forward_filled" id="cMv-xr-jio">
+                                <connections>
+                                    <action selector="goForward:" destination="nLh-iL-AL7" id="iga-Zt-TW5"/>
+                                </connections>
+                            </barButtonItem>
+                        </leftBarButtonItems>
+                        <textField key="titleView" opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="center" minimumFontSize="17" clearButtonMode="whileEditing" id="znl-4s-lfU">
+                            <rect key="frame" x="151" y="8" width="466" height="34"/>
+                            <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
+                            <color key="backgroundColor" systemColor="systemGray5Color"/>
+                            <accessibility key="accessibilityConfiguration" identifier="bar"/>
+                            <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                            <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" keyboardType="URL" returnKeyType="go" enablesReturnKeyAutomatically="YES" textContentType="url"/>
+                        </textField>
+                        <rightBarButtonItems>
+                            <barButtonItem image="icons8-home" id="Li1-EZ-qVe">
+                                <connections>
+                                    <action selector="goHome:" destination="nLh-iL-AL7" id="uBt-dE-F22"/>
+                                </connections>
+                            </barButtonItem>
+                            <barButtonItem systemItem="refresh" id="yRS-5L-3bq">
+                                <connections>
+                                    <action selector="refreshPage:" destination="nLh-iL-AL7" id="KhQ-r0-c3m"/>
+                                </connections>
+                            </barButtonItem>
+                        </rightBarButtonItems>
+                    </navigationItem>
                     <connections>
-                        <outlet property="WebView" destination="h85-BA-wZz" id="vdE-e6-qPZ"/>
+                        <outlet property="browserURL" destination="znl-4s-lfU" id="2JN-qW-phj"/>
                     </connections>
                 </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
-                <tapGestureRecognizer numberOfTapsRequired="3" id="Dh2-Dd-C72">
-                    <connections>
-                        <action selector="tripleTap:" destination="BYZ-38-t0r" id="vGk-Qb-9aa"/>
-                    </connections>
-                </tapGestureRecognizer>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Fe1-f8-edq" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="305" y="387"/>
+            <point key="canvasLocation" x="1069.53125" y="1118.5546875"/>
+        </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="wBd-Fl-mup">
+            <objects>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="Sg8-kt-QI3" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="8Lb-LQ-glh">
+                        <rect key="frame" x="0.0" y="0.0" width="768" height="50"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <color key="barTintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
+                    <connections>
+                        <segue destination="nLh-iL-AL7" kind="relationship" relationship="rootViewController" id="Arg-GB-pBE"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="t2x-wm-mw5" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="305" y="1119"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="icons8-back_filled" width="25" height="25"/>
+        <image name="icons8-forward_filled" width="25" height="25"/>
+        <image name="icons8-home" width="25" height="25"/>
+        <systemColor name="systemGray5Color">
+            <color red="0.89803921568627454" green="0.89803921568627454" blue="0.91764705882352937" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+    </resources>
 </document>
