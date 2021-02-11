@@ -32,6 +32,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         var remoteLock: String          // enable remote ASAM capability
         var currentASAMStatus: String   // current ASAM status
         var privateBrowsing: String     // private browsing mode
+        var resetTimer: Int             // timer in seconds to reset session
         
         var displayURL: URL {
             if maintenanceMode == "ON" {  // display curtain image
@@ -52,7 +53,11 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                         homeURL: URL(string: ""),
                         remoteLock: "OFF",
                         currentASAMStatus: "OFF",
-                        privateBrowsing: "OFF")
+                        privateBrowsing: "OFF",
+                        resetTimer: 0
+    )
+    
+    var timer: Timer?
     
     // WKWebView setup via code - required for < iOS 11
     override func loadView() {
@@ -86,39 +91,43 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             "REMOTE_LOCK":"OFF",
             "BROWSER_MODE":"OFF",
             "BROWSER_BAR_NO_EDIT":"OFF",
-            "PRIVATE_BROWSING":"OFF"
-            ]
+            "PRIVATE_BROWSING":"OFF",
+            "RESET_TIMER":0
+        ] as [String : Any]
         
         // determine if MDM pushed managed app config and assign to local config, if not use defaults
         for (key,defaultValue) in macDict {
-            if let value = ManagedAppConfig.shared.getConfigValue(forKey: key) as? String {
+            if let value = ManagedAppConfig.shared.getConfigValue(forKey: key) {
                 switch key {
-                case "MAINTENANCE_MODE" : config.maintenanceMode = value
+                case "MAINTENANCE_MODE" : config.maintenanceMode = value as! String
                 case "URL" : do {
-                    self.config.newURL = URL(string: value)
-                    self.config.homeURL = URL(string: value) }
-                case "REMOTE_LOCK" : config.remoteLock = value
-                case "BROWSER_MODE" : config.browserMode = value
-                case "BROWSER_BAR_NO_EDIT" : config.browserModeNoEdit = value
-                case "PRIVATE_BROWSING" : config.privateBrowsing = value
+                    self.config.newURL = URL(string: value as! String)
+                    self.config.homeURL = URL(string: value as! String) }
+                case "REMOTE_LOCK" : config.remoteLock = value as! String
+                case "BROWSER_MODE" : config.browserMode = value as! String
+                case "BROWSER_BAR_NO_EDIT" : config.browserModeNoEdit = value as! String
+                case "PRIVATE_BROWSING" : config.privateBrowsing = value as! String
+                case "RESET_TIMER" : config.resetTimer = value as! Int
 
                 default: NSLog("ERROR: undefined managed app config key") }
             } else {
                 switch key {
-                case "MAINTENANCE_MODE" : config.maintenanceMode = defaultValue
+                case "MAINTENANCE_MODE" : config.maintenanceMode = defaultValue as! String
                 case "URL" : do {
-                    self.config.newURL = URL(string: defaultValue)
-                    self.config.homeURL = URL(string: defaultValue) }
-                case "REMOTE_LOCK" : config.remoteLock = defaultValue
-                case "BROWSER_MODE" : config.browserMode = defaultValue
-                case "BROWSER_BAR_NO_EDIT" : config.browserModeNoEdit = defaultValue
-                case "PRIVATE_BROWSING" : config.privateBrowsing = defaultValue
-
+                    self.config.newURL = URL(string: defaultValue as! String)
+                    self.config.homeURL = URL(string: defaultValue as! String) }
+                case "REMOTE_LOCK" : config.remoteLock = defaultValue as! String
+                case "BROWSER_MODE" : config.browserMode = defaultValue as! String
+                case "BROWSER_BAR_NO_EDIT" : config.browserModeNoEdit = defaultValue as! String
+                case "PRIVATE_BROWSING" : config.privateBrowsing = defaultValue as! String
+                case "RESET_TIMER" : config.resetTimer = defaultValue as! Int
 
                 default: NSLog("ERROR: undefined managed app config key") }
             }
         }
         
+        // version 2.2 Reset Timer (integer)
+       
         
         // switch ASAM setting if new request is different than previous
         if self.config.currentASAMStatus != config.remoteLock {
@@ -185,6 +194,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         webView.load(myRequest)
         
         config.previousURL = config.displayURL
+        
+        
     }
     
     func switchRemoteLock() {
@@ -252,16 +263,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     }
     @IBAction func goHome(_ sender: Any) {
         
-        // delete cookies
-        webView.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
-            for cookie in cookies {
-                self.webView.configuration.websiteDataStore.httpCookieStore.delete(cookie)
-                print("DELETE COOKIE: \(cookie.name) = \(cookie.value)")
-            }
-        }
-        
-        config.newURL = config.homeURL
-        loadWebView()
+        self.resetSession()
     }
     
     // BROWSER MODE ONLY: enable user input via URL address bar
@@ -276,14 +278,44 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         return true
     }
     
+    @objc func fireTimer() {
+        NSLog("Timer fired!")
+        resetSession()
+
+    }
+    
     // BROWSER MODE ONLY: display current loaded URL in address field
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        UIApplication.shared.isNetworkActivityIndicatorVisible = false
+        UIApplication.shared.isNetworkActivityIndicatorVisible = true
 
         if let url = webView.url {
             self.browserURL.text = String(describing: url)
         }
         
+        // version 2.2 - timer to refresh session
+        if config.resetTimer != 0 {
+            timer?.invalidate()
+            NSLog("Timer reset!")
+        
+            if webView.url != config.homeURL {
+                NSLog("Timer started!")
+
+                timer = Timer.scheduledTimer(timeInterval: TimeInterval(config.resetTimer), target: self, selector: #selector(fireTimer), userInfo: nil, repeats: false)
+            }
+        }
+        
     }
     
+    func resetSession() {
+        // delete cookies
+        webView.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
+            for cookie in cookies {
+                self.webView.configuration.websiteDataStore.httpCookieStore.delete(cookie)
+                print("DELETE COOKIE: \(cookie.name) = \(cookie.value)")
+            }
+        }
+        
+        config.newURL = config.homeURL
+        loadWebView()
+    }
 }

@@ -31,6 +31,8 @@ URL key: URL to display in app or default home page when BROWSER_MODE is enabled
 
 **PRIVATE_BROWSING** key: Set to “ON” to enable private browsing mode. While in private browsing mode, the app stores web browsing data in non-persistent local data store similar to Safari using Private Browsing mode.
 
+**RESET_TIMER** key: Set integer value (in seconds) to set an automatic timer to clear browser data and return to default home page. Timer will not activate if already at homepage. Timer is disable by default or disabled with value of 0. (New in version 2.2)
+
 ## App Config template
 ```xml
 <dict>
@@ -46,6 +48,8 @@ URL key: URL to display in app or default home page when BROWSER_MODE is enabled
     <string>OFF</string>
   <key>PRIVATE_BROWSING</key> 
     <string>OFF</string>
+  <key>RESET_TIMER</key> 
+    <integer>0</integer>
 </dict>
 ```
 

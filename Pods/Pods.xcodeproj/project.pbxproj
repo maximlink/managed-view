@@ -35,6 +35,7 @@
 		72903E4F113989E4E26C14BA577E1170 /* Pods-Managed View.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-Managed View.release.xcconfig"; sourceTree = "<group>"; };
 		7A7C2E6C7828D91ACDD4B46C3A44ECE0 /* ManagedAppConfigLib.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ManagedAppConfigLib.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		83443630951CC41F9DEF33CA3361E1EA /* Pods-Managed View-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-Managed View-acknowledgements.markdown"; sourceTree = "<group>"; };
+		939D6163258C2A0C007C8848 /* Property List.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Property List.plist"; path = "../../../../../Desktop/Property List.plist"; sourceTree = "<group>"; };
 		93A4A3777CF96A4AAC1D13BA6DCCEA73 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		9E9D4A22EEB510E03EF755F2AEB51195 /* Pods-Managed View.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-Managed View.debug.xcconfig"; sourceTree = "<group>"; };
 		A86E0B070BCBB8B401987CCF4880CFF7 /* ManagedAppConfigLib.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = ManagedAppConfigLib.modulemap; sourceTree = "<group>"; };
@@ -101,6 +102,7 @@
 			isa = PBXGroup;
 			children = (
 				AAC45BF5B85CB5871F4CBDBECAB9BF9D /* ManagedAppConfig.swift */,
+				939D6163258C2A0C007C8848 /* Property List.plist */,
 				E9BBBE26F23D2525D86625C1989D2E32 /* Support Files */,
 			);
 			path = ManagedAppConfigLib;
