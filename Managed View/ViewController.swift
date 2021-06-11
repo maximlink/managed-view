@@ -20,6 +20,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     var defaultURL = URL(string: "http://maximlink.com/readme")
 
     var invalidURL = URL(string: "http://maximlink.com/invalid")
+    var blockLockFlag = false
     
     // local app configuration
     struct Config {
@@ -32,6 +33,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         var remoteLock: String          // enable remote ASAM capability
         var currentASAMStatus: String   // current ASAM status
         var privateBrowsing: String     // private browsing mode
+        var queryUrlString: String     // private browsing mode
         var resetTimer: Int             // timer in seconds to reset session
         
         var displayURL: URL {
@@ -54,6 +56,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                         remoteLock: "OFF",
                         currentASAMStatus: "OFF",
                         privateBrowsing: "OFF",
+                        queryUrlString: "",
                         resetTimer: 0
     )
     
@@ -70,6 +73,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     }
     
     override func viewDidLoad() {
+
         super.viewDidLoad()
 
         readManagedAppConfig()  // initial load of MDM managed app config to local config
@@ -79,7 +83,10 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             self.readManagedAppConfig()  // reload MDM managed app config to local config
         }
         // listen for managed app config updates
-        ManagedAppConfig.shared.addAppConfigChangedHook(myClosure)
+        if config.queryUrlString == "" {
+            ManagedAppConfig.shared.addAppConfigChangedHook(myClosure)
+        }
+
     }
     
     func readManagedAppConfig() {
@@ -92,6 +99,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             "BROWSER_MODE":"OFF",
             "BROWSER_BAR_NO_EDIT":"OFF",
             "PRIVATE_BROWSING":"OFF",
+            "QUERY_URL_STRING":"",
             "RESET_TIMER":0
         ] as [String : Any]
         
@@ -107,6 +115,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 case "BROWSER_MODE" : config.browserMode = value as! String
                 case "BROWSER_BAR_NO_EDIT" : config.browserModeNoEdit = value as! String
                 case "PRIVATE_BROWSING" : config.privateBrowsing = value as! String
+                case "QUERY_URL_STRING" : config.queryUrlString = value as! String
                 case "RESET_TIMER" : config.resetTimer = value as! Int
 
                 default: NSLog("ERROR: undefined managed app config key") }
@@ -120,6 +129,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 case "BROWSER_MODE" : config.browserMode = defaultValue as! String
                 case "BROWSER_BAR_NO_EDIT" : config.browserModeNoEdit = defaultValue as! String
                 case "PRIVATE_BROWSING" : config.privateBrowsing = defaultValue as! String
+                case "QUERY_URL_STRING" : config.queryUrlString = defaultValue as! String
                 case "RESET_TIMER" : config.resetTimer = defaultValue as! Int
 
                 default: NSLog("ERROR: undefined managed app config key") }
@@ -215,7 +225,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                     // wait x seconds and try again
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {  // seconds delay
                         NSLog("Remote ASAM enable retry")
-                        self.switchRemoteLock() }
+                        if !self.blockLockFlag {
+                            self.switchRemoteLock()}
+                    }
                 }
             })
         }
@@ -284,7 +296,6 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
 
     }
     
-    // BROWSER MODE ONLY: display current loaded URL in address field
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
 
@@ -304,6 +315,38 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             }
         }
         
+        // version 2.3 - check for URL string
+        
+        if config.queryUrlString != "" {
+            let queryString = config.queryUrlString
+            let hasSubstring = browserURL.text!.contains(queryString)
+            
+            if hasSubstring {
+                NSLog("Found string in URL")
+                self.blockLockFlag = true
+
+                self.navigationController?.isToolbarHidden = true
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {  // seconds delay
+                     
+                UIAccessibility.requestGuidedAccessSession(enabled: false, completionHandler: {
+                    success in
+                    
+                    if success {
+                        self.config.currentASAMStatus = "OFF"
+                        NSLog("Remote ASAM=OFF success")
+                    } else {
+                        NSLog("Remote ASAM=OFF failure")
+                    }
+                })
+            }
+            }
+            else {
+                self.blockLockFlag = false
+                switchRemoteLock()
+            }
+        }
+        
     }
     
     func resetSession() {
@@ -318,4 +361,5 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         config.newURL = config.homeURL
         loadWebView()
     }
+    
 }
