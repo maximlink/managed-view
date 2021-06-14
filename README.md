@@ -5,17 +5,25 @@ Available free in the App Store.
 https://apps.apple.com/us/app/managed-view/id1159586083
 
 ## Requirements
-MDM solution such as Jamf Pro to remotely modify default URL or enable maintenance mode.
+MDM solution such as Jamf Pro or Jamf School to enable managed app configuration
 
 ## Use cases
-1. Simple Kiosk - lock app into URL and empower local approved user to unlock app while centrally managing URL and app.
-2. Webclip (Web View) on steroids - now have the ability to easily lock a URL or PDF into single app mode.
-3. Maintenance Mode - use the app to display maintenance page while performing routine maintenance such as app updates.
+- Simple Kiosk – lock device into displaying a specific web page
+- Secure Kiosk – add timer to return to homepage and remove cached user data
+- Interactive Kiosk– add ability for user to enter URL
+- Surveys/Forms – present web page survey from while locking device during survey and automatically unlocking device after survey completed
+- Maintenance – present curtained view while device is performing maintenance
+
 
 ## Features
-1. Managed App Config to define URL from central management console.
-2. Support for Autonomous Single App Mode (ASAM). ASAM allows user to enable and disable Single App Mode within the app.  Hidden gesture used to access the feature.  Use triple tap gesture to access ASAM feature.
-2. Built-in maintenance mode with embedded image.  Enabled with Managed App Config.
+- Managed App Config to define URL from central management console.
+- Support for Autonomous Single App Mode (ASAM). ASAM allows user to enable and disable Single App Mode within the app.
+- Built-in maintenance mode with embedded image. Enabled with Managed App Config.
+- Optional navigation bar for user interaction enabled with Managed App Config.
+- Add timer to reset app back to predefined URL.
+- Option to delete cached user data when touching homepage button or during timer reset
+- Define string in URL and when found will automatically turn off app lock (ASAM). Used with REMOTE_LOCK set to ON.
+
 
 ## Managed App Config settings
 
@@ -32,6 +40,8 @@ URL key: URL to display in app or default home page when BROWSER_MODE is enabled
 **PRIVATE_BROWSING** key: Set to “ON” to enable private browsing mode. While in private browsing mode, the app stores web browsing data in non-persistent local data store similar to Safari using Private Browsing mode.
 
 **RESET_TIMER** key: Set integer value (in seconds) to set an automatic timer to clear browser data and return to default home page. Timer will not activate if already at homepage. Timer is disable by default or disabled with value of 0. (New in version 2.2)
+
+**QUERY_URL_STRING**  Advanced option used with REMOTE_LOCK to support automatically unlocking app when a specific URL is presented. Set value to string contained in URL to be unlocked. Supports completed surveys/forms. (new in version 2.3)
 
 ## App Config template
 ```xml
@@ -50,6 +60,8 @@ URL key: URL to display in app or default home page when BROWSER_MODE is enabled
     <string>OFF</string>
   <key>RESET_TIMER</key> 
     <integer>0</integer>
+  <key>QUERY_URL_STRING</key> 
+    <string></string>
 </dict>
 ```
 
