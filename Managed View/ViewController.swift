@@ -282,8 +282,11 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder() // hide the keyboard
         
-        let userURL = URL(string: browserURL.text!)
-        config.newURL = userURL
+        // Add https prefix while user often does't provide url scheme.
+        var urlComponents = URLComponents()
+        urlComponents.scheme = "https"
+        urlComponents.host = browserURL.text
+        config.newURL = urlComponents.url
         
         loadWebView()
         
