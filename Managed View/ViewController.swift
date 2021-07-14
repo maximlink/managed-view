@@ -2,8 +2,6 @@
 //  ViewController.swift
 //  Managed View
 //
-//  Created by Aaron Maxim on 2/24/18.
-//  Copyright © 2018 Aaron Maxim
 //
 
 import Foundation
@@ -15,11 +13,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     
     @IBOutlet weak var browserURL: UITextField!  //BROWSER MODE ONLY: URL address bar
     var webView: WKWebView!
-    
 
-    var defaultURL = URL(string: "http://maximlink.com/readme")
+    var defaultURL = URL(string: "https://maximlink.com/readme")
 
-    var invalidURL = URL(string: "http://maximlink.com/invalid")
     var blockLockFlag = false
     
     // local app configuration
@@ -136,9 +132,6 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             }
         }
         
-        // version 2.2 Reset Timer (integer)
-       
-        
         // switch ASAM setting if new request is different than previous
         if self.config.currentASAMStatus != config.remoteLock {
             switchRemoteLock()
@@ -195,17 +188,28 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
 
     }
     
-    // load new URL request if valid URL
+    // load new URL request & check scheme (v2.3.1)
     func loadWebView() {
-        var myRequest: URLRequest
+        var urlComponents = URLComponents()
         
-        myRequest = URLRequest(url: config.displayURL)
+        if config.displayURL.scheme == nil {
+            urlComponents.scheme = "https" }
+        else {
+            urlComponents.scheme = config.displayURL.scheme }
+        urlComponents.host = config.displayURL.host
+        urlComponents.path = config.displayURL.path
+        urlComponents.query = config.displayURL.query
+        urlComponents.fragment = config.displayURL.fragment
+        urlComponents.user = config.displayURL.user
+        urlComponents.password = config.displayURL.password
+        urlComponents.port = config.displayURL.port
 
+        config.newURL = urlComponents.url
+ 
+        let myRequest = URLRequest(url: config.displayURL)
         webView.load(myRequest)
         
         config.previousURL = config.displayURL
-        
-        
     }
     
     func switchRemoteLock() {
