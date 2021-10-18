@@ -68,6 +68,11 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         return true
     }
     
+    @objc func appCameToForeGround(notification: Notification) {
+        NSLog("App in foreground")
+        deepLink()
+    }
+    
     override func viewDidLoad() {
 
         super.viewDidLoad()
@@ -82,6 +87,13 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         if config.queryUrlString == "" {
             ManagedAppConfig.shared.addAppConfigChangedHook(myClosure)
         }
+        
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(appCameToForeGround(notification:)),
+                                               name: UIApplication.willEnterForegroundNotification,
+                                               object: nil)
+        
+        deepLink() // initial check if app launched by deep link
 
     }
     
@@ -192,7 +204,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     func loadWebView() {
         var urlComponents = URLComponents()
         
-        if config.displayURL.scheme == nil {
+        if (config.displayURL.scheme == nil) || (config.displayURL.scheme == "managedview"){
             urlComponents.scheme = "https" }
         else {
             urlComponents.scheme = config.displayURL.scheme }
@@ -203,7 +215,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         urlComponents.user = config.displayURL.user
         urlComponents.password = config.displayURL.password
         urlComponents.port = config.displayURL.port
-
+        
         config.newURL = urlComponents.url
  
         let myRequest = URLRequest(url: config.displayURL)
@@ -364,6 +376,26 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         
         config.newURL = config.homeURL
         loadWebView()
+    }
+    
+    // version 2.3.3 - deep link support
+    
+    func deepLink() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
+            let appDelegate =
+                UIApplication.shared.delegate as! AppDelegate
+            if appDelegate.deepLink != nil {
+                print("deepLink: \(appDelegate.deepLink!)")
+                self.config.newURL = appDelegate.deepLink
+                self.config.homeURL = appDelegate.deepLink
+                DispatchQueue.main.async {
+                    self.loadWebView()
+                }
+                
+            }
+            else {
+                NSLog("No deep link") }
+        })
     }
     
 }

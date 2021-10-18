@@ -22,7 +22,8 @@ MDM solution such as Jamf Pro or Jamf School to enable managed app configuration
 - Optional navigation bar for user interaction enabled with Managed App Config.
 - Add timer to reset app back to predefined URL.
 - Option to delete cached user data when touching homepage button or during timer reset
-- Define string in URL and when found will automatically turn off app lock (ASAM). Used with REMOTE_LOCK set to ON.
+- Define string in URL and when found will automatically turn off app lock (ASAM). Used with REMOTE_LOCK set to ON
+- Added deep link support using "managedview://" URL scheme. Use case includes using multiple web clips to support multiple URLs (version 2.4)
 
 
 ## Managed App Config settings
