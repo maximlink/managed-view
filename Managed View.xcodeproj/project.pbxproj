@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -14,12 +14,10 @@
 		933DFBC41EB118D4002EEE14 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 933DFBC21EB118D4002EEE14 /* LaunchScreen.storyboard */; };
 		9356E40D1EC26AF400AFECDB /* img in Resources */ = {isa = PBXBuildFile; fileRef = 9356E40C1EC26AF400AFECDB /* img */; };
 		93583CB7271E2E2800538876 /* ScannerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93583CB6271E2E2800538876 /* ScannerViewController.swift */; };
-		A009B1157B7D48918E025FCD /* Pods_Managed_View.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8601444037E47B9FE571FDD1 /* Pods_Managed_View.framework */; };
+		93B5EA4629D212120081E8C0 /* ManagedAppConfigLib in Frameworks */ = {isa = PBXBuildFile; productRef = 93B5EA4529D212120081E8C0 /* ManagedAppConfigLib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		39788C0B86798B4DB0B7D285 /* Pods-Managed View.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Managed View.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Managed View/Pods-Managed View.debug.xcconfig"; sourceTree = "<group>"; };
-		8601444037E47B9FE571FDD1 /* Pods_Managed_View.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Managed_View.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		933DFBB91EB117B1002EEE14 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = "Managed View/Assets.xcassets"; sourceTree = SOURCE_ROOT; };
 		933DFBBB1EB117E4002EEE14 /* ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ViewController.swift; path = "Managed View/ViewController.swift"; sourceTree = SOURCE_ROOT; };
 		933DFBBC1EB117E4002EEE14 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = "Managed View/AppDelegate.swift"; sourceTree = SOURCE_ROOT; };
@@ -31,7 +29,6 @@
 		938E753D1EB15D89000806F3 /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		938E753F1EB15F74000806F3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		93F367471ECA837200BFC414 /* screenshots */ = {isa = PBXFileReference; lastKnownFileType = folder; path = screenshots; sourceTree = "<group>"; };
-		990754963F472AE78DCE3E2A /* Pods-Managed View.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Managed View.release.xcconfig"; path = "Pods/Target Support Files/Pods-Managed View/Pods-Managed View.release.xcconfig"; sourceTree = "<group>"; };
 		BABE64311D635D7700F4EC2B /* Managed View.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Managed View.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -40,21 +37,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A009B1157B7D48918E025FCD /* Pods_Managed_View.framework in Frameworks */,
+				93B5EA4629D212120081E8C0 /* ManagedAppConfigLib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		16CEDB36CED47F1048BFF60F /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				8601444037E47B9FE571FDD1 /* Pods_Managed_View.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 		BABE64281D635D7700F4EC2B = {
 			isa = PBXGroup;
 			children = (
@@ -63,8 +52,6 @@
 				938E753D1EB15D89000806F3 /* .gitignore */,
 				BABE64331D635D7700F4EC2B /* Managed View */,
 				BABE64321D635D7700F4EC2B /* Products */,
-				FBBFD9A643BCE2313126C57C /* Pods */,
-				16CEDB36CED47F1048BFF60F /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -92,15 +79,6 @@
 			path = "Direct View";
 			sourceTree = "<group>";
 		};
-		FBBFD9A643BCE2313126C57C /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				39788C0B86798B4DB0B7D285 /* Pods-Managed View.debug.xcconfig */,
-				990754963F472AE78DCE3E2A /* Pods-Managed View.release.xcconfig */,
-			);
-			name = Pods;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -108,18 +86,18 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = BABE64431D635D7700F4EC2B /* Build configuration list for PBXNativeTarget "Managed View" */;
 			buildPhases = (
-				F15BE9131BBF05C84396BDCB /* [CP] Check Pods Manifest.lock */,
 				BABE642D1D635D7700F4EC2B /* Sources */,
 				BABE642E1D635D7700F4EC2B /* Frameworks */,
 				BABE642F1D635D7700F4EC2B /* Resources */,
-				D68F09B75B50B623B2BB934F /* [CP] Embed Pods Frameworks */,
-				37B946A829C6A609C17D276E /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = "Managed View";
+			packageProductDependencies = (
+				93B5EA4529D212120081E8C0 /* ManagedAppConfigLib */,
+			);
 			productName = "Direct View";
 			productReference = BABE64311D635D7700F4EC2B /* Managed View.app */;
 			productType = "com.apple.product-type.application";
@@ -150,6 +128,9 @@
 				Base,
 			);
 			mainGroup = BABE64281D635D7700F4EC2B;
+			packageReferences = (
+				93B5EA4429D212120081E8C0 /* XCRemoteSwiftPackageReference "ManagedAppConfigLib" */,
+			);
 			productRefGroup = BABE64321D635D7700F4EC2B /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -172,60 +153,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		37B946A829C6A609C17D276E /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Managed View/Pods-Managed View-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		D68F09B75B50B623B2BB934F /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-Managed View/Pods-Managed View-frameworks.sh",
-				"${BUILT_PRODUCTS_DIR}/ManagedAppConfigLib/ManagedAppConfigLib.framework",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ManagedAppConfigLib.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Managed View/Pods-Managed View-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		F15BE9131BBF05C84396BDCB /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Managed View-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		BABE642D1D635D7700F4EC2B /* Sources */ = {
@@ -369,7 +296,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
@@ -377,7 +305,6 @@
 		};
 		BABE64441D635D7700F4EC2B /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 39788C0B86798B4DB0B7D285 /* Pods-Managed View.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -385,7 +312,10 @@
 				DEVELOPMENT_TEAM = P994T22Q7J;
 				INFOPLIST_FILE = "$(SRCROOT)/Managed View/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				MARKETING_VERSION = 2.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aaronmaxim.ManagedView;
 				PRODUCT_NAME = "Managed View";
@@ -397,7 +327,6 @@
 		};
 		BABE64451D635D7700F4EC2B /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 990754963F472AE78DCE3E2A /* Pods-Managed View.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -405,7 +334,10 @@
 				DEVELOPMENT_TEAM = P994T22Q7J;
 				INFOPLIST_FILE = "$(SRCROOT)/Managed View/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				MARKETING_VERSION = 2.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aaronmaxim.ManagedView;
 				PRODUCT_NAME = "Managed View";
@@ -436,6 +368,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		93B5EA4429D212120081E8C0 /* XCRemoteSwiftPackageReference "ManagedAppConfigLib" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/jamf/ManagedAppConfigLib";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		93B5EA4529D212120081E8C0 /* ManagedAppConfigLib */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 93B5EA4429D212120081E8C0 /* XCRemoteSwiftPackageReference "ManagedAppConfigLib" */;
+			productName = ManagedAppConfigLib;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = BABE64291D635D7700F4EC2B /* Project object */;
 }
