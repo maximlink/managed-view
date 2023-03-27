@@ -17,7 +17,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     var defaultURL = URL(string: "https://maximlink.com/readme")
 
     var blockLockFlag = false
-    
+        
     // local app configuration
     struct Config {
         var maintenanceMode: String     // display curtain image
@@ -29,8 +29,10 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         var remoteLock: String          // enable remote ASAM capability
         var currentASAMStatus: String   // current ASAM status
         var privateBrowsing: String     // private browsing mode
-        var queryUrlString: String     // private browsing mode
+        var queryUrlString: String      // private browsing mode
         var resetTimer: Int             // timer in seconds to reset session
+        var qrCode: String              // enable QR Code reader
+        var launchDelay: Int            // initial page load delayed by seconds
         
         var displayURL: URL {
             if maintenanceMode == "ON" {  // display curtain image
@@ -53,15 +55,24 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                         currentASAMStatus: "OFF",
                         privateBrowsing: "OFF",
                         queryUrlString: "",
-                        resetTimer: 0
+                        resetTimer: 0,
+                        qrCode: "OFF",
+                        launchDelay: 0
     )
     
     var timer: Timer?
+    
+    // version 2.5 - observe when camera reads QR Code
+    static let notificationCamera = Notification.Name("qrCode")
+    
+    // version 2.5 - if error (e.g. network not connected) then retry page load after x.x seconds
+    let retryTimer = 1.0
     
     // WKWebView setup via code - required for < iOS 11
     override func loadView() {
         newWebView()
     }
+    
     
     //  Hide Top Status Bar
     override var prefersStatusBarHidden: Bool {
@@ -76,8 +87,13 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     override func viewDidLoad() {
 
         super.viewDidLoad()
-
-        readManagedAppConfig()  // initial load of MDM managed app config to local config
+        
+        if let delay = ManagedAppConfig.shared.getConfigValue(forKey: "LAUNCH_DELAY") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(delay as! Int)) {  // seconds delay
+                self.readManagedAppConfig() }
+        } else {
+                DispatchQueue.main.async {self.readManagedAppConfig()}
+        }
         
         let myClosure = { (configDict: [String : Any?]) -> Void in
             NSLog("mannaged app configuration changed")
@@ -94,6 +110,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                                                object: nil)
         
         deepLink() // initial check if app launched by deep link
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(onNotification(notification:)), name: ViewController.notificationCamera, object: nil)
 
     }
     
@@ -108,7 +126,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             "BROWSER_BAR_NO_EDIT":"OFF",
             "PRIVATE_BROWSING":"OFF",
             "QUERY_URL_STRING":"",
-            "RESET_TIMER":0
+            "RESET_TIMER":0,
+            "QR_CODE":"OFF",
+            "LAUNCH_DELAY":0
         ] as [String : Any]
         
         // determine if MDM pushed managed app config and assign to local config, if not use defaults
@@ -125,6 +145,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 case "PRIVATE_BROWSING" : config.privateBrowsing = value as! String
                 case "QUERY_URL_STRING" : config.queryUrlString = value as! String
                 case "RESET_TIMER" : config.resetTimer = value as! Int
+                case "QR_CODE" : config.qrCode = value as! String
+                case "LAUNCH_DELAY" : config.launchDelay = value as! Int
 
                 default: NSLog("ERROR: undefined managed app config key") }
             } else {
@@ -139,6 +161,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 case "PRIVATE_BROWSING" : config.privateBrowsing = defaultValue as! String
                 case "QUERY_URL_STRING" : config.queryUrlString = defaultValue as! String
                 case "RESET_TIMER" : config.resetTimer = defaultValue as! Int
+                case "QR_CODE" : config.qrCode = defaultValue as! String
+                case "LAUNCH_DELAY" : config.launchDelay = defaultValue as! Int
 
                 default: NSLog("ERROR: undefined managed app config key") }
             }
@@ -219,7 +243,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         config.newURL = urlComponents.url
  
         let myRequest = URLRequest(url: config.displayURL)
-        webView.load(myRequest)
+        
+        self.webView.load(myRequest)
         
         config.previousURL = config.displayURL
     }
@@ -277,6 +302,25 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             navigationController?.isNavigationBarHidden = true
             navigationController?.hidesBarsOnSwipe = false
         }
+        
+        if config.qrCode == "ON" {
+            navigationController?.isToolbarHidden = false
+            var items = [UIBarButtonItem]()
+
+            items.append( UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil) )
+            items.append( UIBarButtonItem(barButtonSystemItem: .camera, target: self, action: #selector(presentCamera)) )
+            items.append( UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil) )
+            self.toolbarItems = items
+        } else {
+            navigationController?.isToolbarHidden = true
+
+        }
+        
+    }
+    
+    @objc func presentCamera() {
+        print ("camera button pushed")
+        performSegue(withIdentifier: "cameraSeque", sender: nil)
     }
     
     // BROWSER MODE ONLY: 4 connectors to UI
@@ -378,7 +422,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         loadWebView()
     }
     
-    // version 2.3.3 - deep link support
+    // version 2.4 - deep link support
     
     func deepLink() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
@@ -396,6 +440,36 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             else {
                 NSLog("No deep link") }
         })
+    }
+    
+    // version 2.5 - observe when camera reads QR Code
+
+    @objc func onNotification(notification:Notification)
+    {
+        print("observed")
+     //   print(notification.userInfo["qrCode"])
+        if let urlString = notification.userInfo!["qrCode"] {
+            // now val is not nil and the Optional has been unwrapped, so use it
+            let url = URL(string: urlString as! String)
+
+            NSLog("QR Code loading...")
+            NSLog(url!.absoluteString)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
+                self.webView.load(URLRequest(url: url!))
+            })
+        }
+    }
+    
+    // version 2.5 - if error (e.g. network not connected) then retry page load after x.x seconds
+    
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + retryTimer) {
+           // self.showAlertWithTitle("Thank You", message: "Failed")
+
+            NSLog("trying page load... again")
+            self.readManagedAppConfig()
+        }
+    
     }
     
 }

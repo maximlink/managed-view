@@ -13,6 +13,7 @@
 		933DFBC11EB11818002EEE14 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 933DFBBF1EB11818002EEE14 /* Main.storyboard */; };
 		933DFBC41EB118D4002EEE14 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 933DFBC21EB118D4002EEE14 /* LaunchScreen.storyboard */; };
 		9356E40D1EC26AF400AFECDB /* img in Resources */ = {isa = PBXBuildFile; fileRef = 9356E40C1EC26AF400AFECDB /* img */; };
+		93583CB7271E2E2800538876 /* ScannerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93583CB6271E2E2800538876 /* ScannerViewController.swift */; };
 		A009B1157B7D48918E025FCD /* Pods_Managed_View.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8601444037E47B9FE571FDD1 /* Pods_Managed_View.framework */; };
 /* End PBXBuildFile section */
 
@@ -26,6 +27,7 @@
 		933DFBC31EB118D4002EEE14 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = "Managed View/Base.lproj/LaunchScreen.storyboard"; sourceTree = SOURCE_ROOT; };
 		933DFBC51EB11ACB002EEE14 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = "Managed View/Info.plist"; sourceTree = SOURCE_ROOT; };
 		9356E40C1EC26AF400AFECDB /* img */ = {isa = PBXFileReference; lastKnownFileType = folder; name = img; path = "Managed View/img"; sourceTree = SOURCE_ROOT; };
+		93583CB6271E2E2800538876 /* ScannerViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScannerViewController.swift; sourceTree = "<group>"; };
 		938E753D1EB15D89000806F3 /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		938E753F1EB15F74000806F3 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		93F367471ECA837200BFC414 /* screenshots */ = {isa = PBXFileReference; lastKnownFileType = folder; path = screenshots; sourceTree = "<group>"; };
@@ -77,6 +79,7 @@
 		BABE64331D635D7700F4EC2B /* Managed View */ = {
 			isa = PBXGroup;
 			children = (
+				93583CB6271E2E2800538876 /* ScannerViewController.swift */,
 				9356E40C1EC26AF400AFECDB /* img */,
 				933DFBBB1EB117E4002EEE14 /* ViewController.swift */,
 				933DFBBC1EB117E4002EEE14 /* AppDelegate.swift */,
@@ -230,6 +233,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				933DFBBE1EB117E4002EEE14 /* AppDelegate.swift in Sources */,
+				93583CB7271E2E2800538876 /* ScannerViewController.swift in Sources */,
 				933DFBBD1EB117E4002EEE14 /* ViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -377,12 +381,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 66;
+				CURRENT_PROJECT_VERSION = 68;
 				DEVELOPMENT_TEAM = P994T22Q7J;
 				INFOPLIST_FILE = "$(SRCROOT)/Managed View/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 2.4;
+				MARKETING_VERSION = 2.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aaronmaxim.ManagedView;
 				PRODUCT_NAME = "Managed View";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -397,12 +401,12 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 66;
+				CURRENT_PROJECT_VERSION = 68;
 				DEVELOPMENT_TEAM = P994T22Q7J;
 				INFOPLIST_FILE = "$(SRCROOT)/Managed View/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 2.4;
+				MARKETING_VERSION = 2.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aaronmaxim.ManagedView;
 				PRODUCT_NAME = "Managed View";
 				SWIFT_VERSION = 5.0;

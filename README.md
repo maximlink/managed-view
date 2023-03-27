@@ -24,6 +24,7 @@ MDM solution such as Jamf Pro or Jamf School to enable managed app configuration
 - Option to delete cached user data when touching homepage button or during timer reset
 - Define string in URL and when found will automatically turn off app lock (ASAM). Used with REMOTE_LOCK set to ON
 - Added deep link support using "managedview://" URL scheme. Use case includes using multiple web clips to support multiple URLs (version 2.4)
+- Added QR code scanning option (version 2.5)
 
 
 ## Managed App Config settings
@@ -44,6 +45,10 @@ URL key: URL to display in app or default home page when BROWSER_MODE is enabled
 
 **QUERY_URL_STRING**  Advanced option used with REMOTE_LOCK to support automatically unlocking app when a specific URL is presented. Set value to string contained in URL to be unlocked. Supports completed surveys/forms. (new in version 2.3)
 
+**QR_CODE**  key: Set to “ON” to enable QR Code scanning within the web browser. Setting the value to ON will present camera icon. (new in version 2.5)
+
+**LAUNCH_DELAY**  key: Set integer value (in seconds) to set delay before web page in reloaded after failed attempt. Handy for when network is not avaialble and workaround for timing issues with newer device hardware. (new in version 2.5)
+
 ## App Config template
 ```xml
 <dict>
@@ -63,6 +68,10 @@ URL key: URL to display in app or default home page when BROWSER_MODE is enabled
     <integer>0</integer>
   <key>QUERY_URL_STRING</key> 
     <string></string>
+  <key>QR_CODE</key>
+    <string>OFF</string>
+  <key>LAUNCH_DELAY</key>
+    <integer>0</integer>
 </dict>
 ```
 
