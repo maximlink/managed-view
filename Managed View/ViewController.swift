@@ -9,7 +9,7 @@ import UIKit
 import WebKit
 import ManagedAppConfigLib  // courtesy of James Felton -> https://github.com/jamf/ManagedAppConfigLib
 
-class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNavigationDelegate {
+class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNavigationDelegate, UIScrollViewDelegate {
     
     @IBOutlet weak var browserURL: UITextField!  //BROWSER MODE ONLY: URL address bar
     var webView: WKWebView!
@@ -33,6 +33,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         var resetTimer: Int             // timer in seconds to reset session
         var qrCode: String              // enable QR Code reader
         var launchDelay: Int            // initial page load delayed by seconds
+        var detectScroll: String        // reset timer if scrolling
         
         var displayURL: URL {
             if maintenanceMode == "ON" {  // display curtain image
@@ -57,7 +58,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                         queryUrlString: "",
                         resetTimer: 0,
                         qrCode: "OFF",
-                        launchDelay: 0
+                        launchDelay: 0,
+                        detectScroll: "OFF"
     )
     
     var timer: Timer?
@@ -128,7 +130,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             "QUERY_URL_STRING":"",
             "RESET_TIMER":0,
             "QR_CODE":"OFF",
-            "LAUNCH_DELAY":0
+            "LAUNCH_DELAY":0,
+            "DETECT_SCROLL":"OFF"
         ] as [String : Any]
         
         // determine if MDM pushed managed app config and assign to local config, if not use defaults
@@ -147,6 +150,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 case "RESET_TIMER" : config.resetTimer = value as! Int
                 case "QR_CODE" : config.qrCode = value as! String
                 case "LAUNCH_DELAY" : config.launchDelay = value as! Int
+                case "DETECT_SCROLL" : config.detectScroll = value as! String
 
                 default: NSLog("ERROR: undefined managed app config key") }
             } else {
@@ -163,6 +167,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 case "RESET_TIMER" : config.resetTimer = defaultValue as! Int
                 case "QR_CODE" : config.qrCode = defaultValue as! String
                 case "LAUNCH_DELAY" : config.launchDelay = defaultValue as! Int
+                case "DETECT_SCROLL" : config.detectScroll = defaultValue as! String
 
                 default: NSLog("ERROR: undefined managed app config key") }
             }
@@ -205,6 +210,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         browserURL.delegate = self
         
         view = webView
+        webView.scrollView.delegate = self
+
         NSLog("Initiate webview - persistant")
 
     }
@@ -220,6 +227,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         browserURL.delegate = self
         
         view = webView
+        webView.scrollView.delegate = self
+
         NSLog("Initiate webview - non-persistant")
 
     }
@@ -471,5 +480,24 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         }
     
     }
+  
+    // verion 2.6 - if scroll detected then reset timer
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+      NSLog("scroll detected")
+      
+      if config.detectScroll == "ON" {
+        if config.resetTimer != 0 {
+          timer?.invalidate()
+          NSLog("Timer reset!")
+          
+          if webView.url != config.homeURL {
+            NSLog("Timer started!")
+            
+            timer = Timer.scheduledTimer(timeInterval: TimeInterval(config.resetTimer), target: self, selector: #selector(fireTimer), userInfo: nil, repeats: false)
+          }
+        }
+      }
+  }
     
 }
