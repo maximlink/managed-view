@@ -34,6 +34,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         var qrCode: String              // enable QR Code reader
         var launchDelay: Int            // initial page load delayed by seconds
         var detectScroll: String        // reset timer if scrolling
+        var redirect: String            // redirect new tabs / pop-ups to webview
+
         
         var displayURL: URL {
             if maintenanceMode == "ON" {  // display curtain image
@@ -59,7 +61,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                         resetTimer: 0,
                         qrCode: "OFF",
                         launchDelay: 0,
-                        detectScroll: "OFF"
+                        detectScroll: "OFF",
+                        redirect: "OFF"
+
     )
     
     var timer: Timer?
@@ -131,7 +135,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             "RESET_TIMER":0,
             "QR_CODE":"OFF",
             "LAUNCH_DELAY":0,
-            "DETECT_SCROLL":"OFF"
+            "DETECT_SCROLL":"OFF",
+            "REDIRECT_SUPPORT":"OFF"
+
         ] as [String : Any]
         
         // determine if MDM pushed managed app config and assign to local config, if not use defaults
@@ -151,6 +157,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 case "QR_CODE" : config.qrCode = value as! String
                 case "LAUNCH_DELAY" : config.launchDelay = value as! Int
                 case "DETECT_SCROLL" : config.detectScroll = value as! String
+                case "REDIRECT_SUPPORT" : config.redirect = value as! String
 
                 default: NSLog("ERROR: undefined managed app config key") }
             } else {
@@ -168,6 +175,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 case "QR_CODE" : config.qrCode = defaultValue as! String
                 case "LAUNCH_DELAY" : config.launchDelay = defaultValue as! Int
                 case "DETECT_SCROLL" : config.detectScroll = defaultValue as! String
+                case "REDIRECT_SUPPORT" : config.redirect = defaultValue as! String
 
                 default: NSLog("ERROR: undefined managed app config key") }
             }
@@ -484,20 +492,36 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     // verion 2.6 - if scroll detected then reset timer
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-      NSLog("scroll detected")
+//      NSLog("scroll detected")
       
       if config.detectScroll == "ON" {
         if config.resetTimer != 0 {
           timer?.invalidate()
-          NSLog("Timer reset!")
+//          NSLog("Timer reset!")
           
           if webView.url != config.homeURL {
-            NSLog("Timer started!")
+//            NSLog("Timer started!")
             
             timer = Timer.scheduledTimer(timeInterval: TimeInterval(config.resetTimer), target: self, selector: #selector(fireTimer), userInfo: nil, repeats: false)
           }
         }
       }
-  }
+    }
+  
+    // version 2.7 - add support for tab/pop-up redirection to webview
+  
+    func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+      
+      NSLog("createWebViewWith")
+      
+      if config.redirect == "ON" {
+        NSLog("redirection to webview")
+        if navigationAction.targetFrame == nil {
+          webView.load(navigationAction.request)
+        }
+      }
+        
+      return nil
+    }
     
 }
