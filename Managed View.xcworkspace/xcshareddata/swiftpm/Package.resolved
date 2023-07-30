@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "managedappconfiglib",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jamf/ManagedAppConfigLib",
+      "state" : {
+        "revision" : "d3c00913b018b62a8c7f2805cd6de6f85171aca6",
+        "version" : "1.1.1"
+      }
+    }
+  ],
+  "version" : 2
+}
