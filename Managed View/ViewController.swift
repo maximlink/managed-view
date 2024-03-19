@@ -36,6 +36,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         var launchDelay: Int            // initial page load delayed by seconds
         var detectScroll: String        // reset timer if scrolling
         var redirect: String            // redirect new tabs / pop-ups to webview
+        var disabletrust: String        // accept unsecure SSL
 
         
         var displayURL: URL {
@@ -64,8 +65,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                         qrCode: "OFF",
                         launchDelay: 0,
                         detectScroll: "OFF",
-                        redirect: "OFF"
-
+                        redirect: "OFF",
+                        disabletrust: "OFF"
     )
     
     var timer: Timer?
@@ -139,7 +140,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             "QR_CODE":"OFF",
             "LAUNCH_DELAY":0,
             "DETECT_SCROLL":"OFF",
-            "REDIRECT_SUPPORT":"OFF"
+            "REDIRECT_SUPPORT":"OFF",            
+            "DISABLE_TRUST":"OFF"
 
         ] as [String : Any]
       
@@ -176,6 +178,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 case "LAUNCH_DELAY" : config.launchDelay = value as! Int
                 case "DETECT_SCROLL" : config.detectScroll = value as! String
                 case "REDIRECT_SUPPORT" : config.redirect = value as! String
+                case "DISABLE_TRUST" : config.disabletrust = value as! String
 
                 default: NSLog("ERROR: undefined managed app config key") }
             } else {
@@ -194,6 +197,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 case "LAUNCH_DELAY" : config.launchDelay = defaultValue as! Int
                 case "DETECT_SCROLL" : config.detectScroll = defaultValue as! String
                 case "REDIRECT_SUPPORT" : config.redirect = defaultValue as! String
+                case "DISABLE_TRUST" : config.disabletrust = defaultValue as! String
 
                 default: NSLog("ERROR: undefined managed app config key") }
             }
@@ -542,6 +546,16 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       return nil
     }
     
+  // version 2.8.1 - add option to bypass secure SSL
+    func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+      let cred = URLCredential(trust: challenge.protectionSpace.serverTrust!)
+      if config.disabletrust == "ON"{
+        completionHandler(.useCredential, cred)
+      } else {
+        completionHandler(.performDefaultHandling, cred)
+      }
+
+    }
 }
 
 // version 2.8
