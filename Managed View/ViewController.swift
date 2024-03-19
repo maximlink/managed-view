@@ -20,6 +20,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         
     // local app configuration
     struct Config {
+        var decodeURL: String           // decode URL
         var maintenanceMode: String     // display curtain image
         var newURL: URL!                // new URL request
         var previousURL: URL!           // previously loaded URL
@@ -48,7 +49,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     }
     
     // set local configuration defaults
-    var config = Config(maintenanceMode: "OFF",
+  var config = Config(decodeURL: "OFF",
+                        maintenanceMode: "OFF",
                         newURL: URL(string: ""),
                         previousURL: URL(string: ""),
                         browserMode: "OFF",
@@ -125,6 +127,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         
         // default managed app config settings
         let macDict = [
+            "DECODE_URL":"OFF",
             "MAINTENANCE_MODE":"OFF",
             "URL":String(describing: defaultURL!),
             "REMOTE_LOCK":"OFF",
@@ -139,6 +142,11 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             "REDIRECT_SUPPORT":"OFF"
 
         ] as [String : Any]
+      
+      //version 2.8
+      if let value = ManagedAppConfig.shared.getConfigValue(forKey: "DECODE_URL") {
+        config.decodeURL = value as! String
+      }
         
         // determine if MDM pushed managed app config and assign to local config, if not use defaults
         for (key,defaultValue) in macDict {
@@ -146,8 +154,18 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 switch key {
                 case "MAINTENANCE_MODE" : config.maintenanceMode = value as! String
                 case "URL" : do {
+                  if config.decodeURL != "ON" {
                     self.config.newURL = URL(string: value as! String)
-                    self.config.homeURL = URL(string: value as! String) }
+                    self.config.homeURL = URL(string: value as! String)
+                  } else {
+                    //version 2.8
+                    let string = value as! String
+                    let decoded = string.stringByDecodingHTMLEntities
+                    print("decoded: \(decoded)")
+                    self.config.newURL = URL(string: decoded)
+                    self.config.homeURL = URL(string: decoded)
+                  }
+                }
                 case "REMOTE_LOCK" : config.remoteLock = value as! String
                 case "BROWSER_MODE" : config.browserMode = value as! String
                 case "BROWSER_BAR_NO_EDIT" : config.browserModeNoEdit = value as! String
@@ -524,4 +542,69 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       return nil
     }
     
+}
+
+// version 2.8
+// the following snippet is from https://stackoverflow.com/questions/25607247/how-do-i-decode-html-entities-in-swift/30141700#30141700
+
+private let characterEntities : [ Substring : Character ] = [
+    // XML predefined entities:
+    "&quot;"    : "\"",
+    "&amp;"     : "&",
+    "&apos;"    : "'",
+    "&lt;"      : "<",
+    "&gt;"      : ">",
+
+    // HTML character entity references:
+    "&nbsp;"    : "\u{00a0}",
+    // ...
+    "&diams;"   : "♦",
+]
+
+extension String {
+    var stringByDecodingHTMLEntities : String {
+        func decodeNumeric(_ string : Substring, base : Int) -> Character? {
+            guard let code = UInt32(string, radix: base),
+                let uniScalar = UnicodeScalar(code) else { return nil }
+            return Character(uniScalar)
+        }
+
+        func decode(_ entity : Substring) -> Character? {
+          if entity.hasPrefix("&#x") || entity.hasPrefix("&#X") {
+                          return decodeNumeric(entity.dropFirst(3).dropLast(), base: 16)
+                      } else if entity.hasPrefix("&#") {
+                          return decodeNumeric(entity.dropFirst(2).dropLast(), base: 10)
+                      } else {
+                          return characterEntities[entity]
+                      }
+        }
+
+        var result = ""
+        var position = startIndex
+
+        // Find the next '&' and copy the characters preceding it to `result`:
+        while let ampRange = self[position...].range(of: "&") {
+            result.append(contentsOf: self[position ..< ampRange.lowerBound])
+            position = ampRange.lowerBound
+
+            // Find the next ';' and copy everything from '&' to ';' into `entity`
+            guard let semiRange = self[position...].range(of: ";") else {
+                // No matching ';'.
+                break
+            }
+            let entity = self[position ..< semiRange.upperBound]
+            position = semiRange.upperBound
+
+            if let decoded = decode(entity) {
+                // Replace by decoded character:
+                result.append(decoded)
+            } else {
+                // Invalid entity, copy verbatim:
+                result.append(contentsOf: entity)
+            }
+        }
+        // Copy remaining characters to `result`:
+        result.append(contentsOf: self[position...])
+        return result
+    }
 }
