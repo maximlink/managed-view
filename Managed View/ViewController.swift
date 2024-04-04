@@ -537,24 +537,36 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       NSLog("createWebViewWith")
       
       if config.redirect == "ON" {
-        NSLog("redirection to webview")
+        NSLog("redirection to existing webview")
         if navigationAction.targetFrame == nil {
           webView.load(navigationAction.request)
         }
+      }
+        
+      if config.redirect == "ALT" {
+        NSLog("redirection to new webview")
+        if navigationAction.targetFrame?.isMainFrame != true {
+              let newWebView = WKWebView(frame: webView.frame,
+                                         configuration: configuration)
+              newWebView.load(navigationAction.request)
+              newWebView.uiDelegate = self
+              webView.superview?.addSubview(newWebView)
+              return newWebView
+          }
       }
         
       return nil
     }
     
   // version 2.8.1 - add option to bypass secure SSL
+  // version 2.8.2 - fixed crash
     func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-      let cred = URLCredential(trust: challenge.protectionSpace.serverTrust!)
-      if config.disabletrust == "ON"{
-        completionHandler(.useCredential, cred)
+  
+      if config.disabletrust == "OFF" && challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust {
+          completionHandler(URLSession.AuthChallengeDisposition.useCredential, URLCredential(trust: challenge.protectionSpace.serverTrust!) )
       } else {
-        completionHandler(.performDefaultHandling, cred)
+        completionHandler(URLSession.AuthChallengeDisposition.performDefaultHandling, nil )
       }
-
     }
 }
 
