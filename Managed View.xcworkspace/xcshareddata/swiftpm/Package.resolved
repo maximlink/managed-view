@@ -1,4 +1,5 @@
 {
+  "originHash" : "d72d70bf83891ed804aec861e79ede8461b775c3d7d4426309f7d7a1b96626ec",
   "pins" : [
     {
       "identity" : "managedappconfiglib",
@@ -10,5 +11,5 @@
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }
