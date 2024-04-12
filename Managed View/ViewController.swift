@@ -37,7 +37,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         var detectScroll: String        // reset timer if scrolling
         var redirect: String            // redirect new tabs / pop-ups to webview
         var disabletrust: String        // accept unsecure SSL
-
+        var autoOpenPopup: String       // allow javascipt to auto open popup
         
         var displayURL: URL {
             if maintenanceMode == "ON" {  // display curtain image
@@ -66,7 +66,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                         launchDelay: 0,
                         detectScroll: "OFF",
                         redirect: "OFF",
-                        disabletrust: "OFF"
+                        disabletrust: "OFF",
+                        autoOpenPopup: "OFF"
     )
     
     var timer: Timer?
@@ -140,8 +141,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             "QR_CODE":"OFF",
             "LAUNCH_DELAY":0,
             "DETECT_SCROLL":"OFF",
-            "REDIRECT_SUPPORT":"OFF",            
-            "DISABLE_TRUST":"OFF"
+            "REDIRECT_SUPPORT":"OFF",
+            "DISABLE_TRUST":"OFF",
+            "AUTO_OPEN_POPUP":"OFF"
 
         ] as [String : Any]
       
@@ -179,6 +181,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 case "DETECT_SCROLL" : config.detectScroll = value as! String
                 case "REDIRECT_SUPPORT" : config.redirect = value as! String
                 case "DISABLE_TRUST" : config.disabletrust = value as! String
+                case "AUTO_OPEN_POPUP" : config.autoOpenPopup = value as! String
 
                 default: NSLog("ERROR: undefined managed app config key") }
             } else {
@@ -198,6 +201,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 case "DETECT_SCROLL" : config.detectScroll = defaultValue as! String
                 case "REDIRECT_SUPPORT" : config.redirect = defaultValue as! String
                 case "DISABLE_TRUST" : config.disabletrust = defaultValue as! String
+                case "AUTO_OPEN_POPUP" : config.autoOpenPopup = defaultValue as! String
 
                 default: NSLog("ERROR: undefined managed app config key") }
             }
@@ -234,6 +238,12 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     // initiate new Web View - persistent
     func newWebView() {
         let webConfiguration = WKWebViewConfiguration()
+     
+        // version 2.8.2 - auto open popup
+        if config.autoOpenPopup == "ON" {
+          webConfiguration.preferences.javaScriptCanOpenWindowsAutomatically = true
+        }
+      
         webView = WKWebView(frame: .zero, configuration: webConfiguration)
         webView.uiDelegate = self
         webView.navigationDelegate = self
@@ -249,6 +259,12 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     // initiate new Web View - non-persistent
     func newWebViewPrivate() {
         let webConfiguration = WKWebViewConfiguration()
+      
+        // version 2.8.2 - auto open popup
+        if config.autoOpenPopup == "ON" {
+          webConfiguration.preferences.javaScriptCanOpenWindowsAutomatically = true
+        }
+      
         // Private Mode v2.1
         webConfiguration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
         webView = WKWebView(frame: .zero, configuration: webConfiguration)
@@ -332,7 +348,6 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         if config.browserMode == "ON" {
             navigationController?.isNavigationBarHidden = false
             navigationController?.hidesBarsOnSwipe = true
-            
             if config.browserModeNoEdit == "ON" {
                 browserURL.isEnabled = false
             }
