@@ -6,7 +6,7 @@
 
 import Foundation
 import UIKit
-import WebKit
+@preconcurrency import WebKit
 import ManagedAppConfigLib  // courtesy of James Felton -> https://github.com/jamf/ManagedAppConfigLib
 
 class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNavigationDelegate, UIScrollViewDelegate {
@@ -141,9 +141,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             "QR_CODE":"OFF",
             "LAUNCH_DELAY":0,
             "DETECT_SCROLL":"OFF",
-            "REDIRECT_SUPPORT":"OFF",
-            "DISABLE_TRUST":"OFF",
-            "AUTO_OPEN_POPUP":"OFF"
+            "REDIRECT_SUPPORT":"ALT",
+            "DISABLE_TRUST":"ON",
+            "AUTO_OPEN_POPUP":"ON"
 
         ] as [String : Any]
       
@@ -183,7 +183,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 case "DISABLE_TRUST" : config.disabletrust = value as! String
                 case "AUTO_OPEN_POPUP" : config.autoOpenPopup = value as! String
 
-                default: NSLog("ERROR: undefined managed app config key") }
+                default: NSLog("ERROR: \(key) - undefined managed app config key") }
             } else {
                 switch key {
                 case "MAINTENANCE_MODE" : config.maintenanceMode = defaultValue as! String
@@ -203,7 +203,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 case "DISABLE_TRUST" : config.disabletrust = defaultValue as! String
                 case "AUTO_OPEN_POPUP" : config.autoOpenPopup = defaultValue as! String
 
-                default: NSLog("ERROR: undefined managed app config key") }
+                default: NSLog("ERROR: \(key) - undefined managed app config key") }
             }
         }
         
@@ -306,7 +306,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     
     func switchRemoteLock() {
         if (config.remoteLock == "ON") {
-            self.navigationController?.isToolbarHidden = false
+  //          self.navigationController?.isToolbarHidden = false
             
             UIAccessibility.requestGuidedAccessSession(enabled: true, completionHandler: {
                 success in
@@ -317,13 +317,14 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                     self.navigationController!.toolbar.barTintColor = UIColor.init(red: 0.2, green: 0.6, blue: 0.0, alpha: 1.0)
                 } else {
                     NSLog("Remote ASAM=ON failure")
-                    
+         /*
                     // wait x seconds and try again
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {  // seconds delay
                         NSLog("Remote ASAM enable retry")
                         if !self.blockLockFlag {
                             self.switchRemoteLock()}
                     }
+          */
                 }
             })
         }
@@ -576,9 +577,13 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   // version 2.8.1 - add option to bypass secure SSL
   // version 2.8.2 - fixed crash
     func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+      
+      NSLog("URLAuthenticationChallenge")
   
       if config.disabletrust == "OFF" && challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust {
           completionHandler(URLSession.AuthChallengeDisposition.useCredential, URLCredential(trust: challenge.protectionSpace.serverTrust!) )
+        NSLog("NSURLAuthenticationMethodServerTrust")
+
       } else {
         completionHandler(URLSession.AuthChallengeDisposition.performDefaultHandling, nil )
       }
