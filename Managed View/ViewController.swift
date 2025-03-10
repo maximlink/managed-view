@@ -183,7 +183,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 self.newWebView()
             }
         }
- 
+
         DispatchQueue.main.async {
             self.loadWebView()
         }
@@ -196,34 +196,33 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         NSLog(String(describing: config))
     }
     
-    // initiate new Web View - persistent
-    func newWebView() {
+    private func configureWebView(isPrivate: Bool = false) -> WKWebView {
         let webConfiguration = WKWebViewConfiguration()
-        webView = WKWebView(frame: .zero, configuration: webConfiguration)
+        if isPrivate {
+            webConfiguration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
+        }
+        let webView = WKWebView(frame: .zero, configuration: webConfiguration)
         webView.uiDelegate = self
         webView.navigationDelegate = self
         browserURL.delegate = self
-        
+        if #available(iOS 11.0, *) {
+            webView.scrollView.contentInsetAdjustmentBehavior = .never
+        }
+        return webView
+    }
+
+    func newWebView() {
+        webView = configureWebView()
         view = webView
         NSLog("Initiate webview - persistant")
-
     }
-    
-    // initiate new Web View - non-persistent
+
     func newWebViewPrivate() {
-        let webConfiguration = WKWebViewConfiguration()
-        // Private Mode v2.1
-        webConfiguration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
-        webView = WKWebView(frame: .zero, configuration: webConfiguration)
-        webView.uiDelegate = self
-        webView.navigationDelegate = self
-        browserURL.delegate = self
-        
+        webView = configureWebView(isPrivate: true)
         view = webView
         NSLog("Initiate webview - non-persistant")
-
     }
-    
+
     // load new URL request & check scheme (v2.3.1)
     func loadWebView() {
         var urlComponents = URLComponents()
