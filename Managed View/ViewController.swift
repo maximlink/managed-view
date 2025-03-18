@@ -133,7 +133,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             "MAINTENANCE_MODE":"OFF",
             "URL":String(describing: defaultURL!),
             "REMOTE_LOCK":"OFF",
-            "BROWSER_MODE":"OFF",
+            "BROWSER_MODE":"ON",
             "BROWSER_BAR_NO_EDIT":"OFF",
             "PRIVATE_BROWSING":"OFF",
             "QUERY_URL_STRING":"",
@@ -240,6 +240,12 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         if isPrivate {
             webConfiguration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
         }
+      
+        // version 2.8.2 - auto open popup
+        if config.autoOpenPopup == "ON" {
+          webConfiguration.preferences.javaScriptCanOpenWindowsAutomatically = true
+        }
+      
         let webView = WKWebView(frame: .zero, configuration: webConfiguration)
         webView.uiDelegate = self
         webView.navigationDelegate = self
