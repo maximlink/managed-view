@@ -37,7 +37,7 @@ URL key: URL to display in app or default home page when BROWSER_MODE is enabled
 
 **BROWSER_BAR_NO_EDIT** key: Set to “ON” to disable the ability to edit the URL address bar.  Use with content filter via config profile to lock down device to specific website.
 
-**REMOTE_LOCK** key: Set to “ON” to remotely trigger Autonomous Single App Mode.  Requires supervised device and config profile with ASAM restriction payload.  Green bar will be displayed at bottom of app if ASAM is enabled.  Gray bar indicates ASAM is not enabled, but REMOTE_LOCK is attempting to enable.
+**REMOTE_LOCK** key: Set to “ON” to remotely trigger Autonomous Single App Mode.  Requires supervised device and config profile with ASAM restriction payload.  Green bar will be displayed at bottom of app if ASAM is enabled.
 
 **PRIVATE_BROWSING** key: Set to “ON” to enable private browsing mode. While in private browsing mode, the app stores web browsing data in non-persistent local data store similar to Safari using Private Browsing mode.
 
