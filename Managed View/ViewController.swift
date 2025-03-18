@@ -133,7 +133,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             "MAINTENANCE_MODE":"OFF",
             "URL":String(describing: defaultURL!),
             "REMOTE_LOCK":"OFF",
-            "BROWSER_MODE":"ON",
+            "BROWSER_MODE":"OFF",
             "BROWSER_BAR_NO_EDIT":"OFF",
             "PRIVATE_BROWSING":"OFF",
             "QUERY_URL_STRING":"",
