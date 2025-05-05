@@ -47,7 +47,7 @@ URL key: URL to display in app or default home page when BROWSER_MODE is enabled
 
 **QR_CODE**  key: Set to “ON” to enable QR Code scanning within the web browser. Setting the value to ON will present camera icon. (new in version 2.5)
 
-**LAUNCH_DELAY**  key: Set integer value (in seconds) to set delay before web page in reloaded after failed attempt. Handy for when network is not avaialble and workaround for timing issues with newer device hardware. (new in version 2.5)
+**LAUNCH_DELAY**  key: Set integer value (in seconds) to set delay before web page in reloaded after failed attempt. Handy for when network is not available and workaround for timing issues with newer device hardware. (new in version 2.5)
 
 ## App Config template
 ```xml
