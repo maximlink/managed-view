@@ -2,14 +2,13 @@
 //  ViewController.swift
 //  Managed View
 //
-//
 
 import Foundation
 import UIKit
 @preconcurrency import WebKit
 import ManagedAppConfigLib  // courtesy of James Felton -> https://github.com/jamf/ManagedAppConfigLib
 
-class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNavigationDelegate, UIScrollViewDelegate {
+class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNavigationDelegate, UIScrollViewDelegate, UIGestureRecognizerDelegate {
     
     @IBOutlet weak var browserURL: UITextField!  //BROWSER MODE ONLY: URL address bar
     var webView: WKWebView!
@@ -182,6 +181,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 case "REDIRECT_SUPPORT" : config.redirect = value as! String
                 case "DISABLE_TRUST" : config.disabletrust = value as! String
                 case "AUTO_OPEN_POPUP" : config.autoOpenPopup = value as! String
+                case "DECODE_URL" : config.decodeURL = value as! String
 
                 default: NSLog("ERROR: \(key) - undefined managed app config key") }
             } else {
@@ -202,6 +202,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                 case "REDIRECT_SUPPORT" : config.redirect = defaultValue as! String
                 case "DISABLE_TRUST" : config.disabletrust = defaultValue as! String
                 case "AUTO_OPEN_POPUP" : config.autoOpenPopup = defaultValue as! String
+                case "DECODE_URL" : config.decodeURL = defaultValue as! String
 
                 default: NSLog("ERROR: \(key) - undefined managed app config key") }
             }
@@ -252,6 +253,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         view = webView
         webView.scrollView.delegate = self
 
+        addUserActivityDetection()
+
         NSLog("Initiate webview - persistant")
 
     }
@@ -274,6 +277,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         
         view = webView
         webView.scrollView.delegate = self
+
+        addUserActivityDetection()
 
         NSLog("Initiate webview - non-persistant")
 
@@ -465,16 +470,39 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     }
     
     func resetSession() {
-        // delete cookies
-        webView.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
-            for cookie in cookies {
-                self.webView.configuration.websiteDataStore.httpCookieStore.delete(cookie)
-                print("DELETE COOKIE: \(cookie.name) = \(cookie.value)")
+        timer?.invalidate()
+
+        // 1. Remove ALL web-site data (cookies, local-storage, caches, IndexedDB, …)
+        let dataStore = webView.configuration.websiteDataStore
+        let allTypes = WKWebsiteDataStore.allWebsiteDataTypes()
+        dataStore.fetchDataRecords(ofTypes: allTypes) { records in
+            dataStore.removeData(ofTypes: allTypes, for: records) {
+                NSLog("WKWebsiteDataStore cleared (\(records.count) records)")
             }
         }
-        
-        config.newURL = config.homeURL
-        loadWebView()
+
+        // 2. Clear shared URLCache (HTTP cache)
+        URLCache.shared.removeAllCachedResponses()
+
+        // 3. Purge any system-wide cookies still lingering
+        HTTPCookieStorage.shared.cookies?.forEach { HTTPCookieStorage.shared.deleteCookie($0) }
+
+        // 4. Remove stored URL-level credentials (HTTP basic / NTLM, etc.)
+        let credentialStorage = URLCredentialStorage.shared
+        for (space, creds) in credentialStorage.allCredentials {
+            for (_, cred) in creds {
+                credentialStorage.remove(cred, for: space)
+            }
+        }
+
+        // 5. Navigate to a blank page, then back to home to ensure a clean slate
+//        config.newURL = URL(string: "about:blank")
+//        loadWebView()
+
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.config.newURL = self.config.homeURL
+            self.loadWebView()
+//        }
     }
     
     // version 2.4 - deep link support
@@ -578,7 +606,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   // version 2.8.2 - fixed crash
     func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
       
-      NSLog("URLAuthenticationChallenge")
+//      NSLog("URLAuthenticationChallenge")
   
       if config.disabletrust == "OFF" && challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust {
           completionHandler(URLSession.AuthChallengeDisposition.useCredential, URLCredential(trust: challenge.protectionSpace.serverTrust!) )
@@ -587,6 +615,64 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       } else {
         completionHandler(URLSession.AuthChallengeDisposition.performDefaultHandling, nil )
       }
+    }
+    
+    // MARK: - User-activity detection (touch / pan / tap anywhere in the view)
+    private func addUserActivityDetection() {
+        // We add recognisers only once.
+        guard view.gestureRecognizers?.contains(where: { $0.name == "userActivity" }) != true else { return }
+        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(userDidInteract))
+        tap.cancelsTouchesInView = false
+        tap.name = "userActivity"
+        tap.delegate = self
+        
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(userDidInteract))
+        pan.cancelsTouchesInView = false
+        pan.name = "userActivity"
+        pan.delegate = self
+        
+        view.addGestureRecognizer(tap)
+        view.addGestureRecognizer(pan)
+    }
+    
+    @objc private func userDidInteract() {
+        NSLog("User interaction detected")
+        // Reset timers or handle “active use” here as required.
+        if config.detectScroll == "ON", config.resetTimer != 0 {
+            timer?.invalidate()
+            if webView.url != config.homeURL {
+                timer = Timer.scheduledTimer(timeInterval: TimeInterval(config.resetTimer),
+                                             target: self,
+                                             selector: #selector(fireTimer),
+                                             userInfo: nil,
+                                             repeats: false)
+            }
+        }
+    }
+    
+    // Allow our gesture recognisers to work alongside the web view’s own recognisers.
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
+                           shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+} 
+
+// MARK: - Frame-load detection
+extension ViewController {
+    // iOS 15+ – called for the main frame AND every sub-frame
+    // (e.g. iframes) that begins provisional navigation.
+    func webView(_ webView: WKWebView,
+                 navigationAction: WKNavigationAction,
+                 didBecome frame: WKFrameInfo) {
+
+        // `frame.isMainFrame` tells you whether this is the top document
+        // or a child/iframe navigation.
+        if frame.isMainFrame {
+            NSLog("Main frame started loading: \(navigationAction.request.url?.absoluteString ?? "unknown URL")")
+        } else {
+            NSLog("Sub-frame started loading: \(navigationAction.request.url?.absoluteString ?? "unknown URL")")
+        }
     }
 }
 
