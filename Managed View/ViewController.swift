@@ -37,6 +37,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     var redirect: String            // redirect new tabs / pop-ups to webview
     var disabletrust: String        // accept unsecure SSL
     var autoOpenPopup: String       // allow javascipt to auto open popup
+    var disableAppConfigListener: String       // allow javascipt to auto open popup
     
     var displayURL: URL {
       if maintenanceMode == "ON" {  // display curtain image
@@ -66,7 +67,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                       detectScroll: "OFF",
                       redirect: "OFF",
                       disabletrust: "OFF",
-                      autoOpenPopup: "OFF"
+                      autoOpenPopup: "OFF",
+                      disableAppConfigListener: "OFF"
   )
   
   var timer: Timer?
@@ -103,9 +105,13 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       DispatchQueue.main.async {self.readManagedAppConfig()}
     }
     
+  
     let myClosure = { (configDict: [String : Any?]) -> Void in
       NSLog("mannaged app configuration changed")
-      self.readManagedAppConfig()  // reload MDM managed app config to local config
+      // version - 2.8.6
+      if self.config.disableAppConfigListener == "ON" {
+        self.readManagedAppConfig()  // reload MDM managed app config to local config
+      }
     }
     // listen for managed app config updates
     if config.queryUrlString == "" {
@@ -141,7 +147,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       "DETECT_SCROLL":"OFF",
       "REDIRECT_SUPPORT":"ALT",
       "DISABLE_TRUST":"ON",
-      "AUTO_OPEN_POPUP":"ON"
+      "AUTO_OPEN_POPUP":"ON",
+      "DISABLE_APP_CONFIG_LISTENER":"OFF"
       
     ] as [String : Any]
     
@@ -181,6 +188,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "DISABLE_TRUST" : config.disabletrust = value as! String
         case "AUTO_OPEN_POPUP" : config.autoOpenPopup = value as! String
         case "DECODE_URL" : config.decodeURL = value as! String
+        case "DISABLE_APP_CONFIG_LISTENER" : config.decodeURL = value as! String
           
           default: NSLog("ERROR: \(key) - undefined managed app config key") }
       } else {
@@ -202,6 +210,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "DISABLE_TRUST" : config.disabletrust = defaultValue as! String
         case "AUTO_OPEN_POPUP" : config.autoOpenPopup = defaultValue as! String
         case "DECODE_URL" : config.decodeURL = defaultValue as! String
+        case "DISABLE_APP_CONFIG_LISTENER" : config.decodeURL = defaultValue as! String
           
           default: NSLog("ERROR: \(key) - undefined managed app config key") }
       }
