@@ -109,7 +109,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     let myClosure = { (configDict: [String : Any?]) -> Void in
       NSLog("mannaged app configuration changed")
       // version - 2.8.6
-      if self.config.disableAppConfigListener == "ON" {
+      if self.config.disableAppConfigListener == "OFF" {
         self.readManagedAppConfig()  // reload MDM managed app config to local config
       }
     }
@@ -188,7 +188,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "DISABLE_TRUST" : config.disabletrust = value as! String
         case "AUTO_OPEN_POPUP" : config.autoOpenPopup = value as! String
         case "DECODE_URL" : config.decodeURL = value as! String
-        case "DISABLE_APP_CONFIG_LISTENER" : config.decodeURL = value as! String
+        case "DISABLE_APP_CONFIG_LISTENER" : config.disableAppConfigListener = value as! String
           
           default: NSLog("ERROR: \(key) - undefined managed app config key") }
       } else {
@@ -210,7 +210,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "DISABLE_TRUST" : config.disabletrust = defaultValue as! String
         case "AUTO_OPEN_POPUP" : config.autoOpenPopup = defaultValue as! String
         case "DECODE_URL" : config.decodeURL = defaultValue as! String
-        case "DISABLE_APP_CONFIG_LISTENER" : config.decodeURL = defaultValue as! String
+        case "DISABLE_APP_CONFIG_LISTENER" : config.disableAppConfigListener = defaultValue as! String
           
           default: NSLog("ERROR: \(key) - undefined managed app config key") }
       }
