@@ -13,6 +13,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   @IBOutlet weak var browserURL: UITextField!  //BROWSER MODE ONLY: URL address bar
   var webView: WKWebView?
   
+  // Keep track of all webViews created by createWebViewWith
+  private var additionalWebViews: [WKWebView] = []
+  
   var defaultURL = URL(string: "https://maximlink.com/readme")
   
   var blockLockFlag = false
@@ -146,9 +149,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       "QR_CODE":"OFF",
       "LAUNCH_DELAY":0,
       "DETECT_SCROLL":"OFF",
-      "REDIRECT_SUPPORT":"ALT",
-      "DISABLE_TRUST":"ON",
-      "AUTO_OPEN_POPUP":"ON",
+      "REDIRECT_SUPPORT":"OFF",
+      "DISABLE_TRUST":"OFF",
+      "AUTO_OPEN_POPUP":"OFF",
       "DISABLE_APP_CONFIG_LISTENER":"OFF"
     ] as [String : Any]
     
@@ -280,6 +283,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     
     // version 2.8.2 - auto open popup
     if config.autoOpenPopup == "ON" {
+      print("Auto open popup ON")
       webConfiguration.preferences.javaScriptCanOpenWindowsAutomatically = true
     }
     
@@ -508,37 +512,45 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     }
   }
   
+  // version 2.8.5
   func resetSession() {
     timer?.invalidate()
     
     guard let webView = webView else { return }
     
-    // version 2.8.5
-    // 1. Remove ALL web-site data (cookies, local-storage, caches, IndexedDB, …)
-    let dataStore = webView.configuration.websiteDataStore
-    let allTypes = WKWebsiteDataStore.allWebsiteDataTypes()
-    dataStore.fetchDataRecords(ofTypes: allTypes) { records in
-      dataStore.removeData(ofTypes: allTypes, for: records) {
-        NSLog("WKWebsiteDataStore cleared (\(records.count) records)")
+    // Try to clear session via JavaScript first
+    let javascript = """
+    if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.clear();
+    }
+    if (typeof localStorage !== 'undefined') {
+        localStorage.clear();
+    }
+    if (typeof document.cookie !== 'undefined') {
+        document.cookie.split(";").forEach(function(c) {
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+    }
+    """
+    
+    webView.evaluateJavaScript(javascript) { (_, error) in
+      if let error = error {
+        NSLog("JavaScript execution error: \(error)")
+      }
+      
+      // Remove all additional webViews
+      for additionalWebView in self.additionalWebViews {
+        additionalWebView.stopLoading()
+        additionalWebView.removeFromSuperview()
+      }
+      self.additionalWebViews.removeAll()
+      
+      // Load home URL after a brief delay
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+        self.config.newURL = self.config.homeURL
+        self.loadWebViewIfNeeded()
       }
     }
-    
-    // 2. Clear shared URLCache (HTTP cache)
-    URLCache.shared.removeAllCachedResponses()
-    
-    // 3. Purge any system-wide cookies still lingering
-    HTTPCookieStorage.shared.cookies?.forEach { HTTPCookieStorage.shared.deleteCookie($0) }
-    
-    // 4. Remove stored URL-level credentials (HTTP basic / NTLM, etc.)
-    let credentialStorage = URLCredentialStorage.shared
-    for (space, creds) in credentialStorage.allCredentials {
-      for (_, cred) in creds {
-        credentialStorage.remove(cred, for: space)
-      }
-    }
-    
-    self.config.newURL = self.config.homeURL
-    self.loadWebViewIfNeeded()
   }
   
   // version 2.4 - deep link support
@@ -576,14 +588,14 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   // version 2.5 - if error (e.g. network not connected) then retry page load after x.x seconds
   func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
     DispatchQueue.main.asyncAfter(deadline: .now() + retryTimer) {
-      NSLog("trying page load... again")
-      self.readManagedAppConfig()
+      print("trying page load... again")
+      webView.load(webView.url != nil ? URLRequest(url: webView.url!) : URLRequest(url: self.config.displayURL))
     }
   }
   
   // version 2.7 - add support for tab/pop-up redirection to webview
   func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
-    NSLog("createWebViewWith")
+    print("createWebViewWith")
     
     if config.redirect == "ON" {
       NSLog("redirection to existing webview")
@@ -599,7 +611,12 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                                    configuration: configuration)
         newWebView.load(navigationAction.request)
         newWebView.uiDelegate = self
+        newWebView.navigationDelegate = self
         webView.superview?.addSubview(newWebView)
+        
+        // Keep track of this webView
+        additionalWebViews.append(newWebView)
+        
         return newWebView
       }
     }
