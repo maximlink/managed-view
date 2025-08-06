@@ -16,7 +16,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   // Keep track of all webViews created by createWebViewWith
   private var additionalWebViews: [WKWebView] = []
   
-  var defaultURL = URL(string: "https://maximlink.com/readme")
+  var defaultURL = URL(string: "https://67.53.251.29:59001/ac/rc/?a=eyJhdCI6ImdycG5hbWUiLCJhdSI6IlpaNDAwMSIsImFwIjoiMXFheiAhUUFaIn0=")
   
   var blockLockFlag = false
   
@@ -24,6 +24,15 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   private var isCreatingWebView = false
   private var needsWebViewUpdate = false
   
+  // Add constraint reference for dynamic updates
+  private var webViewBottomConstraint: NSLayoutConstraint?
+  
+  // Add flag to prevent multiple toolbar setups
+  private var isSettingUpToolbar = false
+  
+  // Reference to the storyboard toolbar
+  @IBOutlet weak var storyboardToolbar: UIToolbar?
+
   // local app configuration
   struct Config {
     var decodeURL: String           // decode URL
@@ -105,6 +114,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   override func viewDidLoad() {
     super.viewDidLoad()
     
+    // Configure navigation bar appearance to respect system appearance mode
+    configureNavigationBarAppearance()
+    
     if let delay = ManagedAppConfig.shared.getConfigValue(forKey: "LAUNCH_DELAY") {
       DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(delay as! Int)) {  // seconds delay
         self.readManagedAppConfig() }
@@ -132,6 +144,40 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     deepLink() // initial check if app launched by deep link
     
     NotificationCenter.default.addObserver(self, selector: #selector(onNotification(notification:)), name: ViewController.notificationCamera, object: nil)
+  }
+  
+  override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+    super.traitCollectionDidChange(previousTraitCollection)
+    
+    // Reconfigure appearance when appearance mode changes
+    if #available(iOS 13.0, *) {
+      if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+        configureNavigationBarAppearance()
+      }
+    }
+  }
+  
+  private func configureNavigationBarAppearance() {
+    guard let navigationController = navigationController else { return }
+    
+    if #available(iOS 13.0, *) {
+      // Use the new appearance API for iOS 13+
+      let appearance = UINavigationBarAppearance()
+      appearance.configureWithDefaultBackground() // This will respect system appearance
+      
+      navigationController.navigationBar.standardAppearance = appearance
+      navigationController.navigationBar.scrollEdgeAppearance = appearance
+      navigationController.navigationBar.compactAppearance = appearance
+      
+      // Remove any fixed tint colors to allow system colors
+      navigationController.navigationBar.barTintColor = nil
+      navigationController.navigationBar.backgroundColor = nil
+    } else {
+      // For iOS 12 and earlier, use system default
+      navigationController.navigationBar.barTintColor = nil
+      navigationController.navigationBar.backgroundColor = nil
+      navigationController.navigationBar.barStyle = .default
+    }
   }
   
   func readManagedAppConfig() {
@@ -275,6 +321,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   private func createWebView(isPrivate: Bool) {
     // Clean up any existing webView
     webView?.removeFromSuperview()
+    webViewBottomConstraint = nil
     
     let webConfiguration = WKWebViewConfiguration()
     if isPrivate {
@@ -303,12 +350,24 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     view.addSubview(webView)
     webView.translatesAutoresizingMaskIntoConstraints = false
     
-    // Set up constraints to respect navigation bar and toolbar
+    // Set up constraints - use different bottom constraint based on QR code setting
+    let bottomAnchor: NSLayoutYAxisAnchor
+    if config.qrCode == "ON" {
+      // Respect safe area to avoid toolbar overlap
+      bottomAnchor = view.safeAreaLayoutGuide.bottomAnchor
+    } else {
+      // Extend to bottom of screen
+      bottomAnchor = view.bottomAnchor
+    }
+    
+    // Create and store the bottom constraint for later updates
+    webViewBottomConstraint = webView.bottomAnchor.constraint(equalTo: bottomAnchor)
+    
     NSLayoutConstraint.activate([
       webView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
       webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
       webView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      webView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+      webViewBottomConstraint!
     ])
     
     webView.scrollView.delegate = self
@@ -408,19 +467,57 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       navigationController?.hidesBarsOnSwipe = false
     }
     
-    if config.qrCode == "ON" {
-      navigationController?.isToolbarHidden = false
-      var items = [UIBarButtonItem]()
-      
-      items.append( UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil) )
-      items.append( UIBarButtonItem(barButtonSystemItem: .camera, target: self, action: #selector(presentCamera)) )
-      items.append( UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil) )
-      self.toolbarItems = items
-    } else {
-      navigationController?.isToolbarHidden = true
-      
+    // Always hide the navigation controller's toolbar since we use the storyboard one
+    navigationController?.isToolbarHidden = true
+    self.toolbarItems = nil
+    
+    // Find the storyboard toolbar
+    var storyboardToolbar: UIToolbar?
+    for subview in view.subviews {
+      if let toolbar = subview as? UIToolbar {
+        storyboardToolbar = toolbar
+        break
+      }
     }
     
+    if config.qrCode == "ON" {
+      storyboardToolbar?.isHidden = false
+      updateWebViewBottomConstraint(usesSafeArea: true)
+    } else {
+      storyboardToolbar?.isHidden = true
+      updateWebViewBottomConstraint(usesSafeArea: false)
+    }
+    
+    view.layoutIfNeeded()
+  }
+  
+  private func updateWebViewBottomConstraint(usesSafeArea: Bool) {
+    guard let webView = webView, let bottomConstraint = webViewBottomConstraint else { return }
+    
+    // Find the storyboard toolbar to get its position
+    var storyboardToolbar: UIToolbar?
+    for subview in view.subviews {
+      if let toolbar = subview as? UIToolbar {
+        storyboardToolbar = toolbar
+        break
+      }
+    }
+    
+    // Deactivate current constraint
+    bottomConstraint.isActive = false
+    
+    // Create new constraint with appropriate anchor
+    let newBottomAnchor: NSLayoutYAxisAnchor
+    if usesSafeArea && storyboardToolbar?.isHidden == false {
+      // If toolbar is visible, position web view above it
+      newBottomAnchor = storyboardToolbar?.topAnchor ?? view.safeAreaLayoutGuide.bottomAnchor
+    } else {
+      // Extend to bottom of screen when toolbar is hidden
+      newBottomAnchor = view.bottomAnchor
+    }
+    
+    webViewBottomConstraint = webView.bottomAnchor.constraint(equalTo: newBottomAnchor)
+    webViewBottomConstraint?.isActive = true
   }
   
   @objc func presentCamera() {
