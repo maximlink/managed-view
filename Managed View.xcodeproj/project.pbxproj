@@ -314,7 +314,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 76;
+				CURRENT_PROJECT_VERSION = 85;
 				DEVELOPMENT_TEAM = P994T22Q7J;
 				INFOPLIST_FILE = "$(SRCROOT)/Managed View/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
@@ -322,7 +322,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.8.4;
+				MARKETING_VERSION = 2.8.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aaronmaxim.ManagedView;
 				PRODUCT_NAME = "Managed View";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -336,7 +336,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CURRENT_PROJECT_VERSION = 76;
+				CURRENT_PROJECT_VERSION = 85;
 				DEVELOPMENT_TEAM = P994T22Q7J;
 				INFOPLIST_FILE = "$(SRCROOT)/Managed View/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
@@ -344,7 +344,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.8.4;
+				MARKETING_VERSION = 2.8.9;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aaronmaxim.ManagedView;
 				PRODUCT_NAME = "Managed View";
 				SWIFT_VERSION = 5.0;
