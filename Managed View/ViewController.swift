@@ -16,7 +16,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   // Keep track of all webViews created by createWebViewWith
   private var additionalWebViews: [WKWebView] = []
   
-  var defaultURL = URL(string: "https://67.53.251.29:59001/ac/rc/?a=eyJhdCI6ImdycG5hbWUiLCJhdSI6IlpaNDAwMSIsImFwIjoiMXFheiAhUUFaIn0=")
+  var defaultURL = URL(string: "https://maximlink.com/readme")
   
   var blockLockFlag = false
   
