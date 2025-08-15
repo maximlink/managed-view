@@ -322,7 +322,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.8.9;
+				MARKETING_VERSION = 2.8.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aaronmaxim.ManagedView;
 				PRODUCT_NAME = "Managed View";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -344,7 +344,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.8.9;
+				MARKETING_VERSION = 2.8.10;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aaronmaxim.ManagedView;
 				PRODUCT_NAME = "Managed View";
 				SWIFT_VERSION = 5.0;

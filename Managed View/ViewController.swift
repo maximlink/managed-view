@@ -32,28 +32,29 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   
   // Reference to the storyboard toolbar
   @IBOutlet weak var storyboardToolbar: UIToolbar?
-
+  
   // local app configuration
   struct Config {
-    var decodeURL: String           // decode URL
-    var maintenanceMode: String     // display curtain image
-    var newURL: URL!                // new URL request
-    var previousURL: URL!           // previously loaded URL
-    var browserMode: String         // display user interactive browser controls
-    var browserModeNoEdit: String   // disable address bar edit
-    var homeURL: URL!               // BROWSER MODE ONLY: URL for home button
-    var remoteLock: String          // enable remote ASAM capability
-    var currentASAMStatus: String   // current ASAM status
-    var privateBrowsing: String     // private browsing mode
-    var queryUrlString: String      // private browsing mode
-    var resetTimer: Int             // timer in seconds to reset session
-    var qrCode: String              // enable QR Code reader
-    var launchDelay: Int            // initial page load delayed by seconds
-    var detectScroll: String        // reset timer if scrolling
-    var redirect: String            // redirect new tabs / pop-ups to webview
-    var disabletrust: String        // accept unsecure SSL
-    var autoOpenPopup: String       // allow javascipt to auto open popup
-    var disableAppConfigListener: String       // allow javascipt to auto open popup
+    var decodeURL: String                 // decode URL
+    var maintenanceMode: String           // display curtain image
+    var newURL: URL!                      // new URL request
+    var previousURL: URL!                 // previously loaded URL
+    var browserMode: String               // display user interactive browser controls
+    var browserModeNoEdit: String         // disable address bar edit
+    var homeURL: URL!                     // BROWSER MODE ONLY: URL for home button
+    var remoteLock: String                // enable remote ASAM capability
+    var currentASAMStatus: String         // current ASAM status
+    var privateBrowsing: String           // private browsing mode
+    var queryUrlString: String            // private browsing mode
+    var resetTimer: Int                   // timer in seconds to reset session
+    var qrCode: String                    // enable QR Code reader
+    var launchDelay: Int                  // initial page load delayed by seconds
+    var detectScroll: String              // reset timer if scrolling
+    var redirect: String                  // redirect new tabs / pop-ups to webview
+    var disabletrust: String              // accept unsecure SSL
+    var autoOpenPopup: String             // allow javascipt to auto open popup
+    var disableAppConfigListener: String  // disable managed app config listener
+    
     
     var displayURL: URL {
       if maintenanceMode == "ON" {  // display curtain image
@@ -107,7 +108,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   }
   
   @objc func appCameToForeGround(notification: Notification) {
-    NSLog("App in foreground")
+    print("App in foreground")
     deepLink()
   }
   
@@ -125,7 +126,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     }
     
     let myClosure = { (configDict: [String : Any?]) -> Void in
-      NSLog("Managed app configuration changed")
+      print("Managed app configuration changed")
       // version - 2.8.6
       if self.config.disableAppConfigListener == "OFF" {
         self.readManagedAppConfig()  // reload MDM managed app config to local config
@@ -135,6 +136,10 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     if config.queryUrlString == "" {
       ManagedAppConfig.shared.addAppConfigChangedHook(myClosure)
     }
+    
+    // version 2.8.10 - add device lock detection
+    print("Device lock detection enabled")
+    addDeviceLockDetection()
     
     NotificationCenter.default.addObserver(self,
                                            selector: #selector(appCameToForeGround(notification:)),
@@ -237,7 +242,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "DECODE_URL" : config.decodeURL = value as! String
         case "DISABLE_APP_CONFIG_LISTENER" : config.disableAppConfigListener = value as! String
           
-          default: NSLog("ERROR: \(key) - undefined managed app config key") }
+          default: print("ERROR: \(key) - undefined managed app config key") }
       } else {
         switch key {
         case "MAINTENANCE_MODE" : config.maintenanceMode = defaultValue as! String
@@ -259,7 +264,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "DECODE_URL" : config.decodeURL = defaultValue as! String
         case "DISABLE_APP_CONFIG_LISTENER" : config.disableAppConfigListener = defaultValue as! String
           
-          default: NSLog("ERROR: \(key) - undefined managed app config key") }
+          default: print("ERROR: \(key) - undefined managed app config key") }
       }
     }
     
@@ -288,7 +293,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       self.checkBrowserMode()
     }
     
-    NSLog(String(describing: config))
+    print(String(describing: config))
   }
   
   private func updateWebViewIfNeeded() {
@@ -335,7 +340,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     }
     
     webView = WKWebView(frame: .zero, configuration: webConfiguration)
-    guard let webView = webView else { 
+    guard let webView = webView else {
       isCreatingWebView = false
       return
     }
@@ -375,9 +380,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     addUserActivityDetection()
     
     if isPrivate {
-      NSLog("Created webview - non-persistent")
+      print("Created webview - non-persistent")
     } else {
-      NSLog("Created webview - persistent")
+      print("Created webview - persistent")
     }
     
     // Reset the creation flag
@@ -427,13 +432,13 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         success in
         
         if success {
-          NSLog("Remote ASAM=ON success")
+          print("Remote ASAM=ON success")
           self.config.currentASAMStatus = "ON"
           if let navController = self.navigationController {
             navController.toolbar.barTintColor = UIColor.init(red: 0.2, green: 0.6, blue: 0.0, alpha: 1.0)
           }
         } else {
-          NSLog("Remote ASAM=ON failure")
+          print("Remote ASAM=ON failure")
         }
       })
     }
@@ -446,9 +451,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         
         if success {
           self.config.currentASAMStatus = "OFF"
-          NSLog("Remote ASAM=OFF success")
+          print("Remote ASAM=OFF success")
         } else {
-          NSLog("Remote ASAM=OFF failure")
+          print("Remote ASAM=OFF failure")
         }
       })
     }
@@ -521,7 +526,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   }
   
   @objc func presentCamera() {
-    print ("camera button pushed")
+    print("camera button pushed")
     performSegue(withIdentifier: "cameraSeque", sender: nil)
   }
   
@@ -554,7 +559,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   }
   
   @objc func fireTimer() {
-    NSLog("Timer fired!")
+    print("Timer fired!")
     resetSession()
   }
   
@@ -568,10 +573,10 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     // version 2.2 - timer to refresh session
     if config.resetTimer != 0 {
       timer?.invalidate()
-      NSLog("Timer reset!")
+      print("Timer reset!")
       
       if webView.url != config.homeURL {
-        NSLog("Timer started!")
+        print("Timer started!")
         
         timer = Timer.scheduledTimer(timeInterval: TimeInterval(config.resetTimer), target: self, selector: #selector(fireTimer), userInfo: nil, repeats: false)
       }
@@ -583,7 +588,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       let hasSubstring = browserURL.text?.contains(queryString) ?? false
       
       if hasSubstring {
-        NSLog("Found string in URL")
+        print("Found string in URL")
         self.blockLockFlag = true
         
         self.navigationController?.isToolbarHidden = true
@@ -595,9 +600,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             
             if success {
               self.config.currentASAMStatus = "OFF"
-              NSLog("Remote ASAM=OFF success")
+              print("Remote ASAM=OFF success")
             } else {
-              NSLog("Remote ASAM=OFF failure")
+              print("Remote ASAM=OFF failure")
             }
           })
         }
@@ -632,7 +637,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     
     webView.evaluateJavaScript(javascript) { (_, error) in
       if let error = error {
-        NSLog("JavaScript execution error: \(error)")
+        print("JavaScript execution error: \(error)")
       }
       
       // Remove all additional webViews
@@ -663,7 +668,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         }
       }
       else {
-        NSLog("No deep link") }
+        print("No deep link") }
     })
   }
   
@@ -672,9 +677,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     print("observed")
     if let urlString = notification.userInfo?["qrCode"] as? String {
       let url = URL(string: urlString)
-      NSLog("QR Code loading...")
+      print("QR Code loading...")
       if let url = url {
-        NSLog(url.absoluteString)
+        print(url.absoluteString)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
           self.webView?.load(URLRequest(url: url))
         })
@@ -695,14 +700,14 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     print("createWebViewWith")
     
     if config.redirect == "ON" {
-      NSLog("redirection to existing webview")
+      print("redirection to existing webview")
       if navigationAction.targetFrame == nil {
         webView.load(navigationAction.request)
       }
     }
     
     if config.redirect == "ALT" {
-      NSLog("redirection to new webview")
+      print("redirection to new webview")
       if navigationAction.targetFrame?.isMainFrame != true {
         let newWebView = WKWebView(frame: webView.frame,
                                    configuration: configuration)
@@ -726,7 +731,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
     if config.disabletrust == "OFF" && challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust {
       completionHandler(URLSession.AuthChallengeDisposition.useCredential, URLCredential(trust: challenge.protectionSpace.serverTrust!) )
-      NSLog("NSURLAuthenticationMethodServerTrust")
+      print("NSURLAuthenticationMethodServerTrust")
     } else {
       completionHandler(URLSession.AuthChallengeDisposition.performDefaultHandling, nil )
     }
@@ -753,7 +758,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   }
   
   @objc private func userDidInteract() {
-    NSLog("User interaction detected")
+    print("User interaction detected")
     // Reset timers or handle "active use" here as required.
     if config.detectScroll == "ON", config.resetTimer != 0 {
       timer?.invalidate()
@@ -773,8 +778,60 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     return true
   }
   
+  // MARK: - Device Lock Detection
+  private func addDeviceLockDetection() {
+    // Listen for device lock events
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(deviceDidLock),
+      name: UIApplication.didEnterBackgroundNotification,
+      object: nil
+    )
+    
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(deviceDidUnlock),
+      name: UIApplication.didBecomeActiveNotification,
+      object: nil
+    )
+    
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(deviceWillLock),
+      name: UIApplication.willResignActiveNotification,
+      object: nil
+    )
+  }
+  
+  @objc private func deviceWillLock() {
+    print("Device will lock - preparing for lock state")
+    // Pause any ongoing operations, timers, etc.
+    timer?.invalidate()
+    webView?.stopLoading()
+  }
+  
+  @objc private func deviceDidLock() {
+    print("Device locked - app entered background")
+    // Additional cleanup when device is locked
+    // This could trigger session reset, clear sensitive data, etc.
+    if config.resetTimer != 0 {
+      // Reset session immediately on device lock if timer is enabled
+      DispatchQueue.main.async {
+        self.resetSession()
+      }
+    }
+  }
+  
+  @objc private func deviceDidUnlock() {
+    print("Device unlocked - app became active")
+  }
+  
   // Clean up when view controller is deallocated
   deinit {
+    // Remove device lock observers
+    NotificationCenter.default.removeObserver(self, name: UIApplication.didEnterBackgroundNotification, object: nil)
+    NotificationCenter.default.removeObserver(self, name: UIApplication.didBecomeActiveNotification, object: nil)
+    NotificationCenter.default.removeObserver(self, name: UIApplication.willResignActiveNotification, object: nil)
     webView?.removeFromSuperview()
     webView = nil
   }
