@@ -823,17 +823,17 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     print("Device locked - app entered background")
     // Additional cleanup when device is locked
     // This could trigger session reset, clear sensitive data, etc.
-    
-  }
-  
-  @objc private func deviceDidUnlock() {
-    print("Device unlocked - app became active")
     if config.resetTimer != 0 {
       // Reset session immediately on device lock if timer is enabled
       DispatchQueue.main.async {
         self.resetSession()
       }
     }
+  }
+  
+  @objc private func deviceDidUnlock() {
+    print("Device unlocked - app became active")
+    
   }
   
   // Clean up when view controller is deallocated
