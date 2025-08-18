@@ -620,7 +620,15 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     
     guard let webView = webView else { return }
     
-    // Try to clear session via JavaScript first
+    print("Resetting session...")
+    // Remove all additional webViews first
+    for additionalWebView in additionalWebViews {
+      additionalWebView.stopLoading()
+      additionalWebView.removeFromSuperview()
+    }
+    additionalWebViews.removeAll()
+    
+    // Clear sessionStorage, localStorage, and cookies using JavaScript
     let javascript = """
     if (typeof sessionStorage !== 'undefined') {
         sessionStorage.clear();
@@ -640,17 +648,18 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         print("JavaScript execution error: \(error)")
       }
       
-      // Remove all additional webViews
-      for additionalWebView in self.additionalWebViews {
-        additionalWebView.stopLoading()
-        additionalWebView.removeFromSuperview()
-      }
-      self.additionalWebViews.removeAll()
+      // Clear WKWebView website data store (this is crucial for Microsoft login)
+      let websiteDataTypes = WKWebsiteDataStore.allWebsiteDataTypes()
+      let dataStore = webView.configuration.websiteDataStore
       
-      // Load home URL after a brief delay
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-        self.config.newURL = self.config.homeURL
-        self.loadWebViewIfNeeded()
+      dataStore.removeData(ofTypes: websiteDataTypes, modifiedSince: Date(timeIntervalSince1970: 0)) {
+        print("Website data cleared")
+        
+        // Load home URL after clearing data
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+          self.config.newURL = self.config.homeURL
+          self.loadWebViewIfNeeded()
+        }
       }
     }
   }
@@ -814,16 +823,17 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     print("Device locked - app entered background")
     // Additional cleanup when device is locked
     // This could trigger session reset, clear sensitive data, etc.
+    
+  }
+  
+  @objc private func deviceDidUnlock() {
+    print("Device unlocked - app became active")
     if config.resetTimer != 0 {
       // Reset session immediately on device lock if timer is enabled
       DispatchQueue.main.async {
         self.resetSession()
       }
     }
-  }
-  
-  @objc private func deviceDidUnlock() {
-    print("Device unlocked - app became active")
   }
   
   // Clean up when view controller is deallocated
