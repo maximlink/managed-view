@@ -54,6 +54,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     var disabletrust: String              // accept unsecure SSL
     var autoOpenPopup: String             // allow javascipt to auto open popup
     var disableAppConfigListener: String  // disable managed app config listener
+    var brightness: String                // device brightness control (0-100)
     
     
     var displayURL: URL {
@@ -85,7 +86,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                       redirect: "OFF",
                       disabletrust: "OFF",
                       autoOpenPopup: "OFF",
-                      disableAppConfigListener: "OFF"
+                      disableAppConfigListener: "OFF",
+                      brightness: ""
   )
   
   var timer: Timer?
@@ -203,7 +205,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       "REDIRECT_SUPPORT":"OFF",
       "DISABLE_TRUST":"OFF",
       "AUTO_OPEN_POPUP":"OFF",
-      "DISABLE_APP_CONFIG_LISTENER":"OFF"
+      "DISABLE_APP_CONFIG_LISTENER":"OFF",
+      "BRIGHTNESS":""
     ] as [String : Any]
     
     // Store previous private browsing setting to check if it changed
@@ -241,6 +244,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "AUTO_OPEN_POPUP" : config.autoOpenPopup = value as! String
         case "DECODE_URL" : config.decodeURL = value as! String
         case "DISABLE_APP_CONFIG_LISTENER" : config.disableAppConfigListener = value as! String
+        case "BRIGHTNESS" : config.brightness = value as! String
           
           default: print("ERROR: \(key) - undefined managed app config key") }
       } else {
@@ -263,6 +267,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "AUTO_OPEN_POPUP" : config.autoOpenPopup = defaultValue as! String
         case "DECODE_URL" : config.decodeURL = defaultValue as! String
         case "DISABLE_APP_CONFIG_LISTENER" : config.disableAppConfigListener = defaultValue as! String
+        case "BRIGHTNESS" : config.brightness = defaultValue as! String
           
           default: print("ERROR: \(key) - undefined managed app config key") }
       }
@@ -291,9 +296,35 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     // check for browser mode status and set accordingly
     DispatchQueue.main.async {
       self.checkBrowserMode()
+      self.setBrightness()
     }
     
     print(String(describing: config))
+  }
+  
+  // MARK: - Brightness Control
+  private func setBrightness() {
+    // Only set brightness if the value is not empty and is a valid number between 0-100
+    guard !config.brightness.isEmpty else {
+      print("Brightness setting is empty, skipping brightness control")
+      return
+    }
+    
+    guard let brightnessValue = Float(config.brightness) else {
+      print("Invalid brightness value: \(config.brightness)")
+      return
+    }
+    
+    // Ensure the value is within valid range (0-100)
+    let clampedValue = max(0, min(100, brightnessValue))
+    
+    // Convert from 0-100 range to 0.0-1.0 range for UIScreen.brightness
+    let screenBrightness = clampedValue / 100.0
+    
+    DispatchQueue.main.async {
+      UIScreen.main.brightness = CGFloat(screenBrightness)
+      print("Device brightness set to: \(clampedValue)% (\(screenBrightness))")
+    }
   }
   
   private func updateWebViewIfNeeded() {
