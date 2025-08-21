@@ -54,7 +54,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     var disabletrust: String              // accept unsecure SSL
     var autoOpenPopup: String             // allow javascipt to auto open popup
     var disableAppConfigListener: String  // disable managed app config listener
-    var brightness: String                // device brightness control (0-100)
+    var brightness: Int                   // device brightness control (-1=disabled, 0-100=brightness %)
     var resetTimerOnHome: String          // enable reset timer when at home URL
     
     
@@ -88,7 +88,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                       disabletrust: "OFF",
                       autoOpenPopup: "OFF",
                       disableAppConfigListener: "OFF",
-                      brightness: "",
+                      brightness: -1,
                       resetTimerOnHome: "OFF"
   )
   
@@ -208,7 +208,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       "DISABLE_TRUST":"OFF",
       "AUTO_OPEN_POPUP":"OFF",
       "DISABLE_APP_CONFIG_LISTENER":"OFF",
-      "BRIGHTNESS":"",
+      "BRIGHTNESS":-1,
       "RESET_TIMER_ON_HOME":"OFF"
     ] as [String : Any]
     
@@ -249,7 +249,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "AUTO_OPEN_POPUP" : config.autoOpenPopup = value as! String
         case "DECODE_URL" : config.decodeURL = value as! String
         case "DISABLE_APP_CONFIG_LISTENER" : config.disableAppConfigListener = value as! String
-        case "BRIGHTNESS" : config.brightness = value as! String
+        case "BRIGHTNESS" : config.brightness = value as! Int
         case "RESET_TIMER_ON_HOME" : config.resetTimerOnHome = value as! String
           
           default: print("ERROR: \(key) - undefined managed app config key") }
@@ -275,7 +275,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "AUTO_OPEN_POPUP" : config.autoOpenPopup = defaultValue as! String
         case "DECODE_URL" : config.decodeURL = defaultValue as! String
         case "DISABLE_APP_CONFIG_LISTENER" : config.disableAppConfigListener = defaultValue as! String
-        case "BRIGHTNESS" : config.brightness = defaultValue as! String
+        case "BRIGHTNESS" : config.brightness = defaultValue as! Int
         case "RESET_TIMER_ON_HOME" : config.resetTimerOnHome = defaultValue as! String
           
           default: print("ERROR: \(key) - undefined managed app config key") }
@@ -313,22 +313,17 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   
   // MARK: - Brightness Control
   private func setBrightness() {
-    // Only set brightness if the value is not empty and is a valid number between 0-100
-    guard !config.brightness.isEmpty else {
-      print("Brightness setting is empty, skipping brightness control")
-      return
-    }
-    
-    guard let brightnessValue = Float(config.brightness) else {
-      print("Invalid brightness value: \(config.brightness)")
+    // Only set brightness if the value is >= 0 (-1 means disabled/default)
+    guard config.brightness >= 0 else {
+      print("Brightness setting is -1 (disabled), skipping brightness control")
       return
     }
     
     // Ensure the value is within valid range (0-100)
-    let clampedValue = max(0, min(100, brightnessValue))
+    let clampedValue = max(0, min(100, config.brightness))
     
     // Convert from 0-100 range to 0.0-1.0 range for UIScreen.brightness
-    let screenBrightness = clampedValue / 100.0
+    let screenBrightness = Float(clampedValue) / 100.0
     
     DispatchQueue.main.async {
       UIScreen.main.brightness = CGFloat(screenBrightness)
