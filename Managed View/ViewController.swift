@@ -55,6 +55,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     var autoOpenPopup: String             // allow javascipt to auto open popup
     var disableAppConfigListener: String  // disable managed app config listener
     var brightness: String                // device brightness control (0-100)
+    var resetTimerOnHome: String          // enable reset timer when at home URL
     
     
     var displayURL: URL {
@@ -87,7 +88,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                       disabletrust: "OFF",
                       autoOpenPopup: "OFF",
                       disableAppConfigListener: "OFF",
-                      brightness: ""
+                      brightness: "",
+                      resetTimerOnHome: "OFF"
   )
   
   var timer: Timer?
@@ -206,7 +208,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       "DISABLE_TRUST":"OFF",
       "AUTO_OPEN_POPUP":"OFF",
       "DISABLE_APP_CONFIG_LISTENER":"OFF",
-      "BRIGHTNESS":""
+      "BRIGHTNESS":"",
+      "RESET_TIMER_ON_HOME":"OFF"
     ] as [String : Any]
     
     // Store previous private browsing setting to check if it changed
@@ -221,6 +224,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
           if config.decodeURL != "ON" {
             self.config.newURL = URL(string: value as! String)
             self.config.homeURL = URL(string: value as! String)
+            print("DEBUG: homeURL set to: \(String(describing: self.config.homeURL))")
           } else {
             //version 2.8
             let string = value as! String
@@ -228,6 +232,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
             print("decoded: \(decoded)")
             self.config.newURL = URL(string: decoded)
             self.config.homeURL = URL(string: decoded)
+            print("DEBUG: homeURL set to (decoded): \(String(describing: self.config.homeURL))")
           }
         }
         case "REMOTE_LOCK" : config.remoteLock = value as! String
@@ -245,6 +250,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "DECODE_URL" : config.decodeURL = value as! String
         case "DISABLE_APP_CONFIG_LISTENER" : config.disableAppConfigListener = value as! String
         case "BRIGHTNESS" : config.brightness = value as! String
+        case "RESET_TIMER_ON_HOME" : config.resetTimerOnHome = value as! String
           
           default: print("ERROR: \(key) - undefined managed app config key") }
       } else {
@@ -252,7 +258,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "MAINTENANCE_MODE" : config.maintenanceMode = defaultValue as! String
         case "URL" : do {
           self.config.newURL = URL(string: defaultValue as! String)
-          self.config.homeURL = URL(string: defaultValue as! String) }
+          self.config.homeURL = URL(string: defaultValue as! String)
+          print("DEBUG: homeURL set to default: \(String(describing: self.config.homeURL))")
+        }
         case "REMOTE_LOCK" : config.remoteLock = defaultValue as! String
         case "BROWSER_MODE" : config.browserMode = defaultValue as! String
         case "BROWSER_BAR_NO_EDIT" : config.browserModeNoEdit = defaultValue as! String
@@ -268,6 +276,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "DECODE_URL" : config.decodeURL = defaultValue as! String
         case "DISABLE_APP_CONFIG_LISTENER" : config.disableAppConfigListener = defaultValue as! String
         case "BRIGHTNESS" : config.brightness = defaultValue as! String
+        case "RESET_TIMER_ON_HOME" : config.resetTimerOnHome = defaultValue as! String
           
           default: print("ERROR: \(key) - undefined managed app config key") }
       }
@@ -605,10 +614,25 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     if config.resetTimer != 0 {
       timer?.invalidate()
       print("Timer reset!")
+      print("DEBUG: Current webView URL: \(String(describing: webView.url))")
+      print("DEBUG: Config homeURL: \(String(describing: config.homeURL))")
+      print("DEBUG: resetTimerOnHome setting: \(config.resetTimerOnHome)")
       
-      if webView.url != config.homeURL {
+      // Check if we should start timer based on current URL and resetTimerOnHome setting
+      let shouldStartTimer: Bool
+      if config.resetTimerOnHome == "ON" {
+        // When resetTimerOnHome is ON, always start the timer regardless of URL
+        shouldStartTimer = true
+        print("DEBUG: Timer will start (resetTimerOnHome is ON)")
+      } else {
+        // Default behavior: only start timer when NOT at home URL
+        shouldStartTimer = (webView.url != config.homeURL)
+        print("DEBUG: webView.url = \(String(describing: webView.url))")
+        print("DEBUG: Timer will \(shouldStartTimer ? "start" : "NOT start") (default behavior, at home: \(!shouldStartTimer))")
+      }
+      
+      if shouldStartTimer {
         print("Timer started!")
-        
         timer = Timer.scheduledTimer(timeInterval: TimeInterval(config.resetTimer), target: self, selector: #selector(fireTimer), userInfo: nil, repeats: false)
       }
     }
@@ -771,7 +795,6 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
     if config.disabletrust == "OFF" && challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust {
       completionHandler(URLSession.AuthChallengeDisposition.useCredential, URLCredential(trust: challenge.protectionSpace.serverTrust!) )
-      print("NSURLAuthenticationMethodServerTrust")
     } else {
       completionHandler(URLSession.AuthChallengeDisposition.performDefaultHandling, nil )
     }
@@ -802,7 +825,18 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     // Reset timers or handle "active use" here as required.
     if config.detectScroll == "ON", config.resetTimer != 0 {
       timer?.invalidate()
-      if webView?.url != config.homeURL {
+      
+      // Check if we should start timer based on current URL and resetTimerOnHome setting
+      let shouldStartTimer: Bool
+      if config.resetTimerOnHome == "ON" {
+        // When resetTimerOnHome is ON, always start the timer regardless of URL
+        shouldStartTimer = true
+      } else {
+        // Default behavior: only start timer when NOT at home URL
+        shouldStartTimer = (webView?.url != config.homeURL)
+      }
+      
+      if shouldStartTimer {
         timer = Timer.scheduledTimer(timeInterval: TimeInterval(config.resetTimer),
                                      target: self,
                                      selector: #selector(fireTimer),
