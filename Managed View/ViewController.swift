@@ -435,30 +435,25 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   }
   
   // load new URL request & check scheme (v2.3.1)
+  // version 2.8.12 - updated check scheme method
   func loadWebViewIfNeeded() {
     guard let webView = webView else { return }
     
-    var urlComponents = URLComponents()
+    var finalURL = config.displayURL
     
-    if (config.displayURL.scheme == nil) || (config.displayURL.scheme == "managedview"){
-      urlComponents.scheme = "https" }
-    else {
-      urlComponents.scheme = config.displayURL.scheme }
-    urlComponents.host = config.displayURL.host
-    urlComponents.path = config.displayURL.path
-    urlComponents.query = config.displayURL.query
-    urlComponents.fragment = config.displayURL.fragment
-    urlComponents.user = config.displayURL.user
-    urlComponents.password = config.displayURL.password
-    urlComponents.port = config.displayURL.port
+    // Check if scheme is nil or managedview and set to https
+    if config.displayURL.scheme == nil || config.displayURL.scheme == "managedview"{
+      // Get the URL string and prepend https://
+      let urlString = config.displayURL.absoluteString
+      if let httpsURL = URL(string: "https://" + urlString) {
+        finalURL = httpsURL
+      }
+    }
     
-    config.newURL = urlComponents.url
-    
-    let myRequest = URLRequest(url: config.displayURL)
-    
+    let myRequest = URLRequest(url: finalURL)
     webView.load(myRequest)
     
-    config.previousURL = config.displayURL
+    config.previousURL = finalURL
   }
   
   func switchRemoteLock() {
