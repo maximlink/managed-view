@@ -33,6 +33,11 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   // Reference to the storyboard toolbar
   @IBOutlet weak var storyboardToolbar: UIToolbar?
   
+  // Loading indicator components
+  private var loadingIndicator: UIActivityIndicatorView?
+  private var loadingBackgroundView: UIView?
+  private var loadingLabel: UILabel?
+  
   // local app configuration
   struct Config {
     var decodeURL: String                 // decode URL
@@ -292,7 +297,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     
     if needsPrivateBrowsingChange {
       updateWebViewIfNeeded()
-    } else if let webView = webView {
+    } else if webView != nil {
       // If webView already exists and settings haven't changed, just load the new URL
       DispatchQueue.main.async {
         self.loadWebViewIfNeeded()
@@ -328,6 +333,103 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     DispatchQueue.main.async {
       UIScreen.main.brightness = CGFloat(screenBrightness)
       print("Device brightness set to: \(clampedValue)% (\(screenBrightness))")
+    }
+  }
+  
+  // MARK: - Loading Indicator
+  private func createLoadingIndicator() {
+    // Only create if it doesn't already exist
+    guard loadingIndicator == nil else { return }
+    
+    // Create background view
+    loadingBackgroundView = UIView()
+    loadingBackgroundView?.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+    loadingBackgroundView?.translatesAutoresizingMaskIntoConstraints = false
+    
+    // Create activity indicator
+    if #available(iOS 13.0, *) {
+      loadingIndicator = UIActivityIndicatorView(style: .large)
+    } else {
+      loadingIndicator = UIActivityIndicatorView(style: .whiteLarge)
+    }
+    loadingIndicator?.color = .white
+    loadingIndicator?.translatesAutoresizingMaskIntoConstraints = false
+    
+    // Create loading label
+    loadingLabel = UILabel()
+    loadingLabel?.text = "Loading..."
+    loadingLabel?.textColor = .white
+    loadingLabel?.font = UIFont.systemFont(ofSize: 16)
+    loadingLabel?.translatesAutoresizingMaskIntoConstraints = false
+    
+    guard let backgroundView = loadingBackgroundView,
+          let indicator = loadingIndicator,
+          let label = loadingLabel else { return }
+    
+    // Add to view hierarchy
+    view.addSubview(backgroundView)
+    backgroundView.addSubview(indicator)
+    backgroundView.addSubview(label)
+    
+    // Set up constraints to cover entire screen including navigation bar
+    NSLayoutConstraint.activate([
+      // Background view fills entire screen, extending beyond safe area
+      backgroundView.topAnchor.constraint(equalTo: view.topAnchor),
+      backgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      backgroundView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      backgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+      
+      // Center activity indicator
+      indicator.centerXAnchor.constraint(equalTo: backgroundView.centerXAnchor),
+      indicator.centerYAnchor.constraint(equalTo: backgroundView.centerYAnchor),
+      
+      // Position label below indicator
+      label.centerXAnchor.constraint(equalTo: backgroundView.centerXAnchor),
+      label.topAnchor.constraint(equalTo: indicator.bottomAnchor, constant: 16)
+    ])
+    
+    // Initially hidden
+    backgroundView.isHidden = true
+  }
+  
+  private func showLoadingIndicator() {
+    DispatchQueue.main.async {
+      // Create if needed
+      self.createLoadingIndicator()
+      
+      // Show and start animating
+      self.loadingBackgroundView?.isHidden = false
+      self.loadingIndicator?.startAnimating()
+      
+      // Add to navigation controller's view if available to cover nav bar, otherwise use our view
+      let targetView = self.navigationController?.view ?? self.view!
+      
+      // Remove from current parent if it exists
+      self.loadingBackgroundView?.removeFromSuperview()
+      
+      // Add to the target view
+      if let backgroundView = self.loadingBackgroundView {
+        targetView.addSubview(backgroundView)
+        
+        // Update constraints for the new parent view
+        backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+          backgroundView.topAnchor.constraint(equalTo: targetView.topAnchor),
+          backgroundView.leadingAnchor.constraint(equalTo: targetView.leadingAnchor),
+          backgroundView.trailingAnchor.constraint(equalTo: targetView.trailingAnchor),
+          backgroundView.bottomAnchor.constraint(equalTo: targetView.bottomAnchor)
+        ])
+        
+        // Bring to front to ensure it's visible above everything
+        targetView.bringSubviewToFront(backgroundView)
+      }
+    }
+  }
+  
+  private func hideLoadingIndicator() {
+    DispatchQueue.main.async {
+      self.loadingBackgroundView?.isHidden = true
+      self.loadingIndicator?.stopAnimating()
     }
   }
   
@@ -449,6 +551,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         finalURL = httpsURL
       }
     }
+    
+    // Show loading indicator when starting to load
+    showLoadingIndicator()
     
     let myRequest = URLRequest(url: finalURL)
     webView.load(myRequest)
@@ -594,6 +699,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   }
   
   func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+    // Hide loading indicator when page finishes loading
+    hideLoadingIndicator()
+    
     UIApplication.shared.isNetworkActivityIndicatorVisible = true
     
     if let url = webView.url {
@@ -735,6 +843,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       if let url = url {
         print(url.absoluteString)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
+          // Show loading indicator when loading QR code URL
+          self.showLoadingIndicator()
           self.webView?.load(URLRequest(url: url))
         })
       }
@@ -743,8 +853,48 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   
   // version 2.5 - if error (e.g. network not connected) then retry page load after x.x seconds
   func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+    // Hide loading indicator on error
+    hideLoadingIndicator()
+    
+    // Log comprehensive error details
+    print("ERROR: didFailProvisionalNavigation - \(error.localizedDescription)")
+    print("ERROR: Error domain: \(error._domain)")
+    print("ERROR: Error code: \(error._code)")
+    print("ERROR: Failed URL: \(webView.url?.absoluteString ?? "unknown")")
+    print("ERROR: Target URL: \(config.displayURL.absoluteString)")
+    
+    // Log additional error details if it's an NSError
+    if let nsError = error as NSError? {
+      print("ERROR: NSError userInfo: \(nsError.userInfo)")
+      if let failingURL = nsError.userInfo[NSURLErrorFailingURLErrorKey] as? URL {
+        print("ERROR: Failing URL from userInfo: \(failingURL.absoluteString)")
+      }
+      if let failingURLString = nsError.userInfo[NSURLErrorFailingURLStringErrorKey] as? String {
+        print("ERROR: Failing URL string from userInfo: \(failingURLString)")
+      }
+    }
+    
+    // Check if this is a cancellation error (NSURLErrorCancelled = -999)
+    // These should NOT trigger retries as they indicate intentional cancellation
+    if let nsError = error as NSError?,
+       nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled {
+      print("ERROR: Request was cancelled (-999) - not retrying to avoid infinite loop")
+      return
+    }
+    
+    // Check for WebKit frame load interrupted (code 102)
+    // This usually happens when multiple rapid navigations occur
+    if let nsError = error as NSError?,
+       nsError.domain == "WebKitErrorDomain" && nsError.code == 102 {
+      print("ERROR: Frame load interrupted (102) - not retrying to avoid conflicts")
+      return
+    }
+    
+    // Only retry for legitimate network/loading errors
     DispatchQueue.main.asyncAfter(deadline: .now() + retryTimer) {
       print("trying page load... again")
+      // Show loading indicator when retrying
+      self.showLoadingIndicator()
       webView.load(webView.url != nil ? URLRequest(url: webView.url!) : URLRequest(url: self.config.displayURL))
     }
   }
