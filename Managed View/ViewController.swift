@@ -38,6 +38,15 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   private var loadingBackgroundView: UIView?
   private var loadingLabel: UILabel?
   
+  // Add flag to prevent double taps on browser buttons
+  private var isBrowserBarAnimating = false
+  
+  // Navigation bar button outlets for enabling/disabling during loading
+  @IBOutlet weak var backButton: UIBarButtonItem?
+  @IBOutlet weak var forwardButton: UIBarButtonItem?
+  @IBOutlet weak var refreshButton: UIBarButtonItem?
+  @IBOutlet weak var homeButton: UIBarButtonItem?
+  
   // local app configuration
   struct Config {
     var decodeURL: String                 // decode URL
@@ -392,10 +401,42 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     backgroundView.isHidden = true
   }
   
+  // MARK: - Navigation Button Control
+  private func setNavigationButtonsEnabled(_ enabled: Bool) {
+    DispatchQueue.main.async {
+      // Only control buttons if they exist and browser mode is ON
+      guard self.config.browserMode == "ON" else { return }
+      
+      // Get navigation bar buttons programmatically since outlets may not be connected
+      if let leftBarButtonItems = self.navigationItem.leftBarButtonItems {
+        for button in leftBarButtonItems {
+          button.isEnabled = enabled
+        }
+      }
+      
+      if let rightBarButtonItems = self.navigationItem.rightBarButtonItems {
+        for button in rightBarButtonItems {
+          button.isEnabled = enabled
+        }
+      }
+      
+      // Also try the outlet approach if they're connected
+      self.backButton?.isEnabled = enabled
+      self.forwardButton?.isEnabled = enabled
+      self.refreshButton?.isEnabled = enabled
+      self.homeButton?.isEnabled = enabled
+      
+      print("Navigation buttons \(enabled ? "enabled" : "disabled")")
+    }
+  }
+  
   private func showLoadingIndicator() {
     DispatchQueue.main.async {
       // Create if needed
       self.createLoadingIndicator()
+      
+      // Disable navigation buttons during loading
+      self.setNavigationButtonsEnabled(false)
       
       // Show and start animating
       self.loadingBackgroundView?.isHidden = false
@@ -430,6 +471,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     DispatchQueue.main.async {
       self.loadingBackgroundView?.isHidden = true
       self.loadingIndicator?.stopAnimating()
+      
+      // Re-enable navigation buttons when loading is complete
+      self.setNavigationButtonsEnabled(true)
     }
   }
   
@@ -664,19 +708,59 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     print("camera button pushed")
     performSegue(withIdentifier: "cameraSeque", sender: nil)
   }
-  
   // BROWSER MODE ONLY: 4 connectors to UI
   @IBAction func goBack(_ sender: Any) {
+    provideBrowserButtonFeedback(for: sender)
     webView?.goBack()
   }
   @IBAction func goForward(_ sender: Any) {
+    provideBrowserButtonFeedback(for: sender)
     webView?.goForward()
   }
   @IBAction func refreshPage(_ sender: Any) {
+    provideBrowserButtonFeedback(for: sender)
     webView?.reload()
   }
   @IBAction func goHome(_ sender: Any) {
+    provideBrowserButtonFeedback(for: sender)
     self.resetSession()
+  }
+  
+  // MARK: - Browser Button Feedback
+  private func provideBrowserButtonFeedback(for sender: Any) {
+    // Prevent double taps during animation
+    guard !isBrowserBarAnimating else {
+      print("Browser bar animation in progress, ignoring tap")
+      return
+    }
+    
+    // Only proceed if browser mode is ON and navigation bar is visible
+    guard config.browserMode == "ON",
+          let navigationController = navigationController,
+          !navigationController.isNavigationBarHidden else {
+      print("Browser mode off or navigation bar already hidden")
+      return
+    }
+    
+    isBrowserBarAnimating = true
+    
+    // Haptic feedback
+    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+    impactFeedback.impactOccurred()
+    
+    // Hide navigation bar with animation (0.4 seconds)
+    UIView.animate(withDuration: 0.4, animations: {
+      navigationController.setNavigationBarHidden(true, animated: false)
+      self.view.layoutIfNeeded()
+    }) { _ in
+      // Show navigation bar again after a brief delay (0.2s delay + 0.4s animation = 1.0s total)
+      UIView.animate(withDuration: 0.4, delay: 0.2, options: [], animations: {
+        navigationController.setNavigationBarHidden(false, animated: false)
+        self.view.layoutIfNeeded()
+      }) { _ in
+        self.isBrowserBarAnimating = false
+      }
+    }
   }
   
   // BROWSER MODE ONLY: enable user input via URL address bar
