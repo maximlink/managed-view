@@ -224,7 +224,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       "BROWSER_BAR_NO_EDIT":"OFF",
       "PRIVATE_BROWSING":"OFF",
       "QUERY_URL_STRING":"",
-      "RESET_TIMER":901,
+      "RESET_TIMER":0,
       "QR_CODE":"OFF",
       "LAUNCH_DELAY":0,
       "DETECT_SCROLL":"OFF",
@@ -234,7 +234,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       "DISABLE_APP_CONFIG_LISTENER":"OFF",
       "BRIGHTNESS":-1,
       "RESET_TIMER_ON_HOME":"OFF",
-      "RESET_TIMER_WARNING":890
+      "RESET_TIMER_WARNING":0
     ] as [String : Any]
     
     // Store previous private browsing setting to check if it changed
