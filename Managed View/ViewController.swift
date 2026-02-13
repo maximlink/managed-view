@@ -70,6 +70,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     var disableAppConfigListener: String  // disable managed app config listener
     var brightness: Int                   // device brightness control (-1=disabled, 0-100=brightness %)
     var resetTimerOnHome: String          // enable reset timer when at home URL
+    var resetTimerWarning: Int            // seconds before reset to show warning (0=disabled)
     
     
     var displayURL: URL {
@@ -97,16 +98,25 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                       resetTimer: 0,
                       qrCode: "OFF",
                       launchDelay: 0,
-                      detectScroll: "OFF",
+                      detectScroll: "ON",
                       redirect: "OFF",
                       disabletrust: "OFF",
                       autoOpenPopup: "OFF",
                       disableAppConfigListener: "OFF",
                       brightness: -1,
-                      resetTimerOnHome: "OFF"
+                      resetTimerOnHome: "OFF",
+                      resetTimerWarning: 0
   )
   
   var timer: Timer?
+  
+  // Warning timer for reset countdown
+  private var warningTimer: Timer?
+  private var warningBannerView: UIView?
+  private var warningLabel: UILabel?
+  private var countdownLabel: UILabel?
+  private var countdownTimer: Timer?
+  private var countdownSeconds: Int = 0
   
   // version 2.5 - observe when camera reads QR Code
   static let notificationCamera = Notification.Name("qrCode")
@@ -214,7 +224,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       "BROWSER_BAR_NO_EDIT":"OFF",
       "PRIVATE_BROWSING":"OFF",
       "QUERY_URL_STRING":"",
-      "RESET_TIMER":0,
+      "RESET_TIMER":901,
       "QR_CODE":"OFF",
       "LAUNCH_DELAY":0,
       "DETECT_SCROLL":"OFF",
@@ -223,7 +233,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       "AUTO_OPEN_POPUP":"OFF",
       "DISABLE_APP_CONFIG_LISTENER":"OFF",
       "BRIGHTNESS":-1,
-      "RESET_TIMER_ON_HOME":"OFF"
+      "RESET_TIMER_ON_HOME":"OFF",
+      "RESET_TIMER_WARNING":890
     ] as [String : Any]
     
     // Store previous private browsing setting to check if it changed
@@ -265,6 +276,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "DISABLE_APP_CONFIG_LISTENER" : config.disableAppConfigListener = value as! String
         case "BRIGHTNESS" : config.brightness = value as! Int
         case "RESET_TIMER_ON_HOME" : config.resetTimerOnHome = value as! String
+        case "RESET_TIMER_WARNING" : config.resetTimerWarning = value as! Int
           
           default: print("ERROR: \(key) - undefined managed app config key") }
       } else {
@@ -291,6 +303,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "DISABLE_APP_CONFIG_LISTENER" : config.disableAppConfigListener = defaultValue as! String
         case "BRIGHTNESS" : config.brightness = defaultValue as! Int
         case "RESET_TIMER_ON_HOME" : config.resetTimerOnHome = defaultValue as! String
+        case "RESET_TIMER_WARNING" : config.resetTimerWarning = defaultValue as! Int
           
           default: print("ERROR: \(key) - undefined managed app config key") }
       }
@@ -477,6 +490,323 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     }
   }
   
+  // MARK: - Reset Warning Banner
+  private var continueButton: UIButton?
+  private var warningOverlayView: UIView?
+  
+  private func createWarningBanner() {
+    // Only create if it doesn't already exist
+    guard warningBannerView == nil else { return }
+    
+    let targetView = navigationController?.view ?? view!
+    
+    // Create semi-transparent overlay
+    warningOverlayView = UIView()
+    warningOverlayView?.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+    warningOverlayView?.translatesAutoresizingMaskIntoConstraints = false
+    
+    // Create banner container (white card)
+    warningBannerView = UIView()
+    warningBannerView?.backgroundColor = UIColor.systemBackground
+    warningBannerView?.translatesAutoresizingMaskIntoConstraints = false
+    warningBannerView?.layer.cornerRadius = 16
+    warningBannerView?.layer.shadowColor = UIColor.black.cgColor
+    warningBannerView?.layer.shadowOffset = CGSize(width: 0, height: 4)
+    warningBannerView?.layer.shadowOpacity = 0.3
+    warningBannerView?.layer.shadowRadius = 8
+    
+    // Create icon image view (using SF Symbol)
+    let iconImageView = UIImageView()
+    if #available(iOS 13.0, *) {
+      let config = UIImage.SymbolConfiguration(pointSize: 40, weight: .regular)
+      iconImageView.image = UIImage(systemName: "timer", withConfiguration: config)
+      iconImageView.tintColor = .secondaryLabel
+    }
+    iconImageView.contentMode = .scaleAspectFit
+    iconImageView.translatesAutoresizingMaskIntoConstraints = false
+    
+    // Create icon background
+    let iconBackground = UIView()
+    iconBackground.backgroundColor = UIColor.secondarySystemBackground
+    iconBackground.layer.cornerRadius = 12
+    iconBackground.translatesAutoresizingMaskIntoConstraints = false
+    
+    // Create title label
+    let titleLabel = UILabel()
+    titleLabel.text = "Your session will be reset soon"
+    titleLabel.textColor = .label
+    titleLabel.font = UIFont.boldSystemFont(ofSize: 20)
+    titleLabel.textAlignment = .center
+    titleLabel.translatesAutoresizingMaskIntoConstraints = false
+    
+    // Create description label
+    warningLabel = UILabel()
+    let timerDescription = formatTimerDuration(seconds: config.resetTimer)
+    warningLabel?.text = "This happens when device isn't used for \(timerDescription)."
+    warningLabel?.textColor = .secondaryLabel
+    warningLabel?.font = UIFont.systemFont(ofSize: 15)
+    warningLabel?.textAlignment = .center
+    warningLabel?.numberOfLines = 0
+    warningLabel?.translatesAutoresizingMaskIntoConstraints = false
+    
+    // Create countdown container
+    let countdownContainer = UIView()
+    countdownContainer.backgroundColor = UIColor.secondarySystemBackground
+    countdownContainer.layer.cornerRadius = 8
+    countdownContainer.translatesAutoresizingMaskIntoConstraints = false
+    
+    // Create countdown label
+    countdownLabel = UILabel()
+    countdownLabel?.text = "Time Remaining: 10 seconds"
+    countdownLabel?.textColor = .label
+    countdownLabel?.font = UIFont.systemFont(ofSize: 15)
+    countdownLabel?.textAlignment = .center
+    countdownLabel?.translatesAutoresizingMaskIntoConstraints = false
+    
+    // Create continue button
+    continueButton = UIButton(type: .system)
+    continueButton?.setTitle("Continue using", for: .normal)
+    continueButton?.setTitleColor(.white, for: .normal)
+    continueButton?.titleLabel?.font = UIFont.boldSystemFont(ofSize: 17)
+    continueButton?.backgroundColor = UIColor.systemBlue
+    continueButton?.layer.cornerRadius = 25
+    continueButton?.translatesAutoresizingMaskIntoConstraints = false
+    continueButton?.addTarget(self, action: #selector(continueButtonTapped), for: .touchUpInside)
+    
+    guard let overlay = warningOverlayView,
+          let bannerView = warningBannerView,
+          let warning = warningLabel,
+          let countdown = countdownLabel,
+          let button = continueButton else { return }
+    
+    // Add to view hierarchy
+    targetView.addSubview(overlay)
+    targetView.addSubview(bannerView)
+    iconBackground.addSubview(iconImageView)
+    bannerView.addSubview(iconBackground)
+    bannerView.addSubview(titleLabel)
+    bannerView.addSubview(warning)
+    bannerView.addSubview(countdownContainer)
+    countdownContainer.addSubview(countdown)
+    bannerView.addSubview(button)
+    
+    // Set up constraints
+    NSLayoutConstraint.activate([
+      // Overlay covers entire screen
+      overlay.topAnchor.constraint(equalTo: targetView.topAnchor),
+      overlay.leadingAnchor.constraint(equalTo: targetView.leadingAnchor),
+      overlay.trailingAnchor.constraint(equalTo: targetView.trailingAnchor),
+      overlay.bottomAnchor.constraint(equalTo: targetView.bottomAnchor),
+      
+      // Banner centered in screen
+      bannerView.centerXAnchor.constraint(equalTo: targetView.centerXAnchor),
+      bannerView.centerYAnchor.constraint(equalTo: targetView.centerYAnchor),
+      bannerView.leadingAnchor.constraint(greaterThanOrEqualTo: targetView.leadingAnchor, constant: 24),
+      bannerView.trailingAnchor.constraint(lessThanOrEqualTo: targetView.trailingAnchor, constant: -24),
+      bannerView.widthAnchor.constraint(lessThanOrEqualToConstant: 400),
+      
+      // Icon background at top
+      iconBackground.topAnchor.constraint(equalTo: bannerView.topAnchor, constant: 24),
+      iconBackground.centerXAnchor.constraint(equalTo: bannerView.centerXAnchor),
+      iconBackground.widthAnchor.constraint(equalToConstant: 64),
+      iconBackground.heightAnchor.constraint(equalToConstant: 64),
+      
+      // Icon centered in background
+      iconImageView.centerXAnchor.constraint(equalTo: iconBackground.centerXAnchor),
+      iconImageView.centerYAnchor.constraint(equalTo: iconBackground.centerYAnchor),
+      iconImageView.widthAnchor.constraint(equalToConstant: 40),
+      iconImageView.heightAnchor.constraint(equalToConstant: 40),
+      
+      // Title below icon
+      titleLabel.topAnchor.constraint(equalTo: iconBackground.bottomAnchor, constant: 16),
+      titleLabel.leadingAnchor.constraint(equalTo: bannerView.leadingAnchor, constant: 24),
+      titleLabel.trailingAnchor.constraint(equalTo: bannerView.trailingAnchor, constant: -24),
+      
+      // Description below title
+      warning.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+      warning.leadingAnchor.constraint(equalTo: bannerView.leadingAnchor, constant: 24),
+      warning.trailingAnchor.constraint(equalTo: bannerView.trailingAnchor, constant: -24),
+      
+      // Countdown container below description
+      countdownContainer.topAnchor.constraint(equalTo: warning.bottomAnchor, constant: 20),
+      countdownContainer.centerXAnchor.constraint(equalTo: bannerView.centerXAnchor),
+      countdownContainer.heightAnchor.constraint(equalToConstant: 36),
+      
+      // Countdown label inside container
+      countdown.topAnchor.constraint(equalTo: countdownContainer.topAnchor, constant: 8),
+      countdown.bottomAnchor.constraint(equalTo: countdownContainer.bottomAnchor, constant: -8),
+      countdown.leadingAnchor.constraint(equalTo: countdownContainer.leadingAnchor, constant: 16),
+      countdown.trailingAnchor.constraint(equalTo: countdownContainer.trailingAnchor, constant: -16),
+      
+      // Continue button at bottom
+      button.topAnchor.constraint(equalTo: countdownContainer.bottomAnchor, constant: 24),
+      button.leadingAnchor.constraint(equalTo: bannerView.leadingAnchor, constant: 24),
+      button.trailingAnchor.constraint(equalTo: bannerView.trailingAnchor, constant: -24),
+      button.heightAnchor.constraint(equalToConstant: 50),
+      button.bottomAnchor.constraint(equalTo: bannerView.bottomAnchor, constant: -24)
+    ])
+    
+    // Initially hidden
+    overlay.isHidden = true
+    overlay.alpha = 0
+    bannerView.isHidden = true
+    bannerView.alpha = 0
+  }
+  
+  @objc private func continueButtonTapped() {
+    print("Continue button tapped - resetting timer")
+    
+    // Cancel warning and reset timer
+    timer?.invalidate()
+    cancelWarningTimer()
+    
+    // Restart the timer if needed
+    if config.resetTimer != 0 {
+      let shouldStartTimer: Bool
+      if config.resetTimerOnHome == "ON" {
+        shouldStartTimer = true
+      } else {
+        shouldStartTimer = (webView?.url != config.homeURL)
+      }
+      
+      if shouldStartTimer {
+        timer = Timer.scheduledTimer(timeInterval: TimeInterval(config.resetTimer),
+                                     target: self,
+                                     selector: #selector(fireTimer),
+                                     userInfo: nil,
+                                     repeats: false)
+        startWarningTimer()
+      }
+    }
+  }
+  
+  private func showWarningBanner(secondsRemaining: Int) {
+    DispatchQueue.main.async {
+      // Create banner if needed
+      self.createWarningBanner()
+      
+      // Set initial countdown
+      self.countdownSeconds = secondsRemaining
+      self.updateCountdownLabel()
+      
+      // Show overlay and banner with animation
+      self.warningOverlayView?.isHidden = false
+      self.warningBannerView?.isHidden = false
+      UIView.animate(withDuration: 0.3) {
+        self.warningOverlayView?.alpha = 1.0
+        self.warningBannerView?.alpha = 1.0
+      }
+      
+      // Start countdown timer
+      self.countdownTimer?.invalidate()
+      self.countdownTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+        guard let self = self else { return }
+        self.countdownSeconds -= 1
+        self.updateCountdownLabel()
+        
+        if self.countdownSeconds <= 0 {
+          self.countdownTimer?.invalidate()
+          self.countdownTimer = nil
+        }
+      }
+      
+      print("Warning banner shown with \(secondsRemaining) seconds remaining")
+    }
+  }
+  
+  private func hideWarningBanner() {
+    // Stop countdown timer immediately (on current thread if main, otherwise dispatch)
+    if Thread.isMainThread {
+      self.countdownTimer?.invalidate()
+      self.countdownTimer = nil
+      
+      // Hide overlay and banner with animation
+      UIView.animate(withDuration: 0.3, animations: {
+        self.warningOverlayView?.alpha = 0
+        self.warningBannerView?.alpha = 0
+      }) { _ in
+        self.warningOverlayView?.isHidden = true
+        self.warningBannerView?.isHidden = true
+      }
+      
+      print("Warning banner hidden")
+    } else {
+      DispatchQueue.main.async {
+        self.countdownTimer?.invalidate()
+        self.countdownTimer = nil
+        
+        // Hide overlay and banner with animation
+        UIView.animate(withDuration: 0.3, animations: {
+          self.warningOverlayView?.alpha = 0
+          self.warningBannerView?.alpha = 0
+        }) { _ in
+          self.warningOverlayView?.isHidden = true
+          self.warningBannerView?.isHidden = true
+        }
+        
+        print("Warning banner hidden")
+      }
+    }
+  }
+  
+  private func updateCountdownLabel() {
+    DispatchQueue.main.async {
+      self.countdownLabel?.text = "Time Remaining: \(self.countdownSeconds) seconds"
+    }
+  }
+  
+  private func startWarningTimer() {
+    // Only start warning timer if both reset timer and warning are configured
+    guard config.resetTimer > 0, config.resetTimerWarning > 0 else { return }
+    
+    // Warning should be less than the reset timer
+    guard config.resetTimerWarning < config.resetTimer else {
+      print("Warning: RESET_TIMER_WARNING (\(config.resetTimerWarning)) must be less than RESET_TIMER (\(config.resetTimer))")
+      return
+    }
+    
+    // Calculate when to show the warning
+    let warningDelay = config.resetTimer - config.resetTimerWarning
+    
+    warningTimer?.invalidate()
+    warningTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(warningDelay), repeats: false) { [weak self] _ in
+      guard let self = self else { return }
+      self.showWarningBanner(secondsRemaining: self.config.resetTimerWarning)
+    }
+    
+    print("Warning timer scheduled to fire in \(warningDelay) seconds")
+  }
+  
+  private func cancelWarningTimer() {
+    // Stop the warning timer that triggers the banner
+    warningTimer?.invalidate()
+    warningTimer = nil
+    
+    // Also stop countdown timer directly (in case banner is showing)
+    countdownTimer?.invalidate()
+    countdownTimer = nil
+    
+    // Hide the banner if visible
+    hideWarningBanner()
+  }
+  
+  private func formatTimerDuration(seconds: Int) -> String {
+    if seconds >= 60 {
+      let minutes = seconds / 60
+      if minutes == 1 {
+        return "1 minute"
+      } else {
+        return "\(minutes) minutes"
+      }
+    } else {
+      if seconds == 1 {
+        return "1 second"
+      } else {
+        return "\(seconds) seconds"
+      }
+    }
+  }
+
   private func updateWebViewIfNeeded() {
     // Prevent multiple simultaneous webView creation attempts
     guard !isCreatingWebView else {
@@ -779,6 +1109,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   
   @objc func fireTimer() {
     print("Timer fired!")
+    hideWarningBanner()
     resetSession()
   }
   
@@ -795,6 +1126,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     // version 2.2 - timer to refresh session
     if config.resetTimer != 0 {
       timer?.invalidate()
+      cancelWarningTimer()
       print("Timer reset!")
       print("DEBUG: Current webView URL: \(String(describing: webView.url))")
       print("DEBUG: Config homeURL: \(String(describing: config.homeURL))")
@@ -816,6 +1148,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       if shouldStartTimer {
         print("Timer started!")
         timer = Timer.scheduledTimer(timeInterval: TimeInterval(config.resetTimer), target: self, selector: #selector(fireTimer), userInfo: nil, repeats: false)
+        startWarningTimer()
       }
     }
     
@@ -1046,9 +1379,16 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   
   @objc private func userDidInteract() {
     print("User interaction detected")
-    // Reset timers or handle "active use" here as required.
-    if config.detectScroll == "ON", config.resetTimer != 0 {
+    
+    // Check if warning banner is currently visible
+    let warningBannerVisible = warningBannerView?.isHidden == false && warningBannerView?.alpha ?? 0 > 0
+    
+    // Reset timers if:
+    // 1. detectScroll is ON (existing behavior), OR
+    // 2. Warning banner is visible (user should be able to dismiss by interacting)
+    if (config.detectScroll == "ON" || warningBannerVisible), config.resetTimer != 0 {
       timer?.invalidate()
+      cancelWarningTimer()
       
       // Check if we should start timer based on current URL and resetTimerOnHome setting
       let shouldStartTimer: Bool
@@ -1066,6 +1406,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                                      selector: #selector(fireTimer),
                                      userInfo: nil,
                                      repeats: false)
+        startWarningTimer()
       }
     }
   }

@@ -317,7 +317,7 @@
 				CURRENT_PROJECT_VERSION = 90;
 				DEVELOPMENT_TEAM = P994T22Q7J;
 				INFOPLIST_FILE = "$(SRCROOT)/Managed View/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -339,7 +339,7 @@
 				CURRENT_PROJECT_VERSION = 90;
 				DEVELOPMENT_TEAM = P994T22Q7J;
 				INFOPLIST_FILE = "$(SRCROOT)/Managed View/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
