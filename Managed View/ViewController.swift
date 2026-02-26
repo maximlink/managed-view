@@ -864,6 +864,10 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       webConfiguration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
     }
     
+    // Enable inline media playback and allow audio/video without user gesture
+    webConfiguration.allowsInlineMediaPlayback = true
+    webConfiguration.mediaTypesRequiringUserActionForPlayback = []
+    
     // version 2.8.2 - auto open popup
     if config.autoOpenPopup == "ON" {
       print("Auto open popup ON")
