@@ -265,7 +265,12 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "BROWSER_BAR_NO_EDIT" : config.browserModeNoEdit = value as! String
         case "PRIVATE_BROWSING" : config.privateBrowsing = value as! String
         case "QUERY_URL_STRING" : config.queryUrlString = value as! String
-        case "RESET_TIMER" : config.resetTimer = value as! Int
+        case "RESET_TIMER" :
+          if let intValue = value as? Int {
+            config.resetTimer = intValue
+          } else if let stringValue = value as? String, let intValue = Int(stringValue) {
+            config.resetTimer = intValue
+          }
         case "QR_CODE" : config.qrCode = value as! String
         case "LAUNCH_DELAY" : config.launchDelay = value as! Int
         case "DETECT_SCROLL" : config.detectScroll = value as! String
@@ -276,7 +281,12 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "DISABLE_APP_CONFIG_LISTENER" : config.disableAppConfigListener = value as! String
         case "BRIGHTNESS" : config.brightness = value as! Int
         case "RESET_TIMER_ON_HOME" : config.resetTimerOnHome = value as! String
-        case "RESET_TIMER_WARNING" : config.resetTimerWarning = value as! Int
+        case "RESET_TIMER_WARNING" :
+          if let intValue = value as? Int {
+            config.resetTimerWarning = intValue
+          } else if let stringValue = value as? String, let intValue = Int(stringValue) {
+            config.resetTimerWarning = intValue
+          }
           
           default: print("ERROR: \(key) - undefined managed app config key") }
       } else {
@@ -292,7 +302,12 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "BROWSER_BAR_NO_EDIT" : config.browserModeNoEdit = defaultValue as! String
         case "PRIVATE_BROWSING" : config.privateBrowsing = defaultValue as! String
         case "QUERY_URL_STRING" : config.queryUrlString = defaultValue as! String
-        case "RESET_TIMER" : config.resetTimer = defaultValue as! Int
+        case "RESET_TIMER" :
+          if let intValue = defaultValue as? Int {
+            config.resetTimer = intValue
+          } else if let stringValue = defaultValue as? String, let intValue = Int(stringValue) {
+            config.resetTimer = intValue
+          }
         case "QR_CODE" : config.qrCode = defaultValue as! String
         case "LAUNCH_DELAY" : config.launchDelay = defaultValue as! Int
         case "DETECT_SCROLL" : config.detectScroll = defaultValue as! String
@@ -303,7 +318,12 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
         case "DISABLE_APP_CONFIG_LISTENER" : config.disableAppConfigListener = defaultValue as! String
         case "BRIGHTNESS" : config.brightness = defaultValue as! Int
         case "RESET_TIMER_ON_HOME" : config.resetTimerOnHome = defaultValue as! String
-        case "RESET_TIMER_WARNING" : config.resetTimerWarning = defaultValue as! Int
+        case "RESET_TIMER_WARNING" :
+          if let intValue = defaultValue as? Int {
+            config.resetTimerWarning = intValue
+          } else if let stringValue = defaultValue as? String, let intValue = Int(stringValue) {
+            config.resetTimerWarning = intValue
+          }
           
           default: print("ERROR: \(key) - undefined managed app config key") }
       }
