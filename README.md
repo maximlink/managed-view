@@ -29,7 +29,7 @@ MDM solution such as Jamf Pro or Jamf School to enable managed app configuration
 
 ## Managed App Config settings
 
-**URL key: URL** to display in app or default home page when BROWSER_MODE is enabled.
+**URL** key: URL to display in app or default home page when BROWSER_MODE is enabled.
 
 **MAINTENANCE_MODE** key: Set to “ON” to display static image and provide user a visual that the device is not available.
 
