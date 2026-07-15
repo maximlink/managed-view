@@ -71,8 +71,7 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     var brightness: Int                   // device brightness control (-1=disabled, 0-100=brightness %)
     var resetTimerOnHome: String          // enable reset timer when at home URL
     var resetTimerWarning: Int            // seconds before reset to show warning (0=disabled)
-    
-    
+    var userAgent: String                 // custom user agent string (empty = default WebKit UA)
     var displayURL: URL {
       if maintenanceMode == "ON" {  // display curtain image
         return URL.init(fileURLWithPath: Bundle.main.path(forResource: "curtain", ofType: "png", inDirectory: "img")!)
@@ -105,7 +104,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
                       disableAppConfigListener: "OFF",
                       brightness: -1,
                       resetTimerOnHome: "OFF",
-                      resetTimerWarning: 0
+                      resetTimerWarning: 0,
+                      userAgent: ""
   )
   
   var timer: Timer?
@@ -234,7 +234,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       "DISABLE_APP_CONFIG_LISTENER":"OFF",
       "BRIGHTNESS":-1,
       "RESET_TIMER_ON_HOME":"OFF",
-      "RESET_TIMER_WARNING":0
+      "RESET_TIMER_WARNING":0,
+      "USER_AGENT":""
     ] as [String : Any]
     
     // Store previous private browsing setting to check if it changed
@@ -287,7 +288,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
           } else if let stringValue = value as? String, let intValue = Int(stringValue) {
             config.resetTimerWarning = intValue
           }
-          
+        case "USER_AGENT" : config.userAgent = value as! String
+
           default: print("ERROR: \(key) - undefined managed app config key") }
       } else {
         switch key {
@@ -324,7 +326,8 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
           } else if let stringValue = defaultValue as? String, let intValue = Int(stringValue) {
             config.resetTimerWarning = intValue
           }
-          
+        case "USER_AGENT" : config.userAgent = defaultValue as! String
+
           default: print("ERROR: \(key) - undefined managed app config key") }
       }
     }
@@ -349,6 +352,15 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
       updateWebViewIfNeeded()
     }
     
+    // apply custom user agent if configured
+    DispatchQueue.main.async {
+      if !self.config.userAgent.isEmpty {
+        self.webView?.customUserAgent = self.config.userAgent
+      } else {
+        self.webView?.customUserAgent = nil
+      }
+    }
+
     // check for browser mode status and set accordingly
     DispatchQueue.main.async {
       self.checkBrowserMode()
@@ -883,6 +895,9 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
     webView.uiDelegate = self
     webView.navigationDelegate = self
     browserURL.delegate = self
+    if !config.userAgent.isEmpty {
+      webView.customUserAgent = config.userAgent
+    }
     if #available(iOS 11.0, *) {
       webView.scrollView.contentInsetAdjustmentBehavior = .never
     }

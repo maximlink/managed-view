@@ -67,6 +67,11 @@ MDM solution such as Jamf Pro or Jamf School to enable managed app configuration
 
 **RESET_TIMER_WARNING** key: Set integer value (in seconds) to display a warning banner before the reset timer fires. The value must be less than RESET_TIMER. Set to 0 (default) to disable the warning.
 
+**USER_AGENT** key: Set custom user agent string to present to web servers. Useful when sites require a recent browser version. Leave empty (default) to use the standard WebKit user agent. Example values:
+- Chrome (iOS): `Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/138.0.7204.51 Mobile/15E148 Safari/604.1`
+- Safari (iOS 18): `Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1`
+- Chrome (Desktop): `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36`
+
 ## App Config template
 ```xml
 <dict>
@@ -108,6 +113,8 @@ MDM solution such as Jamf Pro or Jamf School to enable managed app configuration
     <string>OFF</string>
   <key>RESET_TIMER_WARNING</key>
     <integer>0</integer>
+  <key>USER_AGENT</key>
+    <string></string>
 </dict>
 ```
 
