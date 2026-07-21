@@ -192,21 +192,22 @@ class ViewController: UIViewController, UITextFieldDelegate, WKUIDelegate, WKNav
   
   private func configureNavigationBarAppearance() {
     guard let navigationController = navigationController else { return }
-    
+
     if #available(iOS 13.0, *) {
-      // Use the new appearance API for iOS 13+
       let appearance = UINavigationBarAppearance()
-      appearance.configureWithDefaultBackground() // This will respect system appearance
-      
+      appearance.configureWithOpaqueBackground()
+
       navigationController.navigationBar.standardAppearance = appearance
       navigationController.navigationBar.scrollEdgeAppearance = appearance
       navigationController.navigationBar.compactAppearance = appearance
-      
-      // Remove any fixed tint colors to allow system colors
+
       navigationController.navigationBar.barTintColor = nil
       navigationController.navigationBar.backgroundColor = nil
+
+      // Update URL text field colors for dark mode
+      browserURL.backgroundColor = UIColor.secondarySystemBackground
+      browserURL.textColor = UIColor.label
     } else {
-      // For iOS 12 and earlier, use system default
       navigationController.navigationBar.barTintColor = nil
       navigationController.navigationBar.backgroundColor = nil
       navigationController.navigationBar.barStyle = .default
